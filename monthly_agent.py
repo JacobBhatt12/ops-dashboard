@@ -69,7 +69,7 @@ TW_LOGO_PATH = os.path.join(ASSETS_DIR, "tw-logo.png")
 # "website" is the client's domain, "github_repo" is "owner/repo" or None if
 # the site has no GitHub repo yet (powers the dashboard's deployment-status
 # dot + Dependabot alert badge), "ga4_property_id" is None until GA4 is
-# activated for that client (see the GA4 section in CLAUDE.md).
+# activated for that client (see the GOOGLE ANALYTICS (GA4) section below).
 def _load_clients(path):
     if not os.path.isfile(path):
         return []
@@ -424,7 +424,7 @@ def get_site_issues(website, run_pagespeed=True):
 #   keeps getting the clearly-labelled placeholder chart — nothing here
 #   ever breaks a report run; any failure just falls back silently.
 #
-#   One-time setup per client, see CLAUDE.md "Traffic Graph" section:
+#   One-time setup per client:
 #     1. The client's site needs GA4 already installed and collecting data.
 #     2. One shared service account (this project, not per-client) needs
 #        Viewer access granted on that client's GA4 property.
