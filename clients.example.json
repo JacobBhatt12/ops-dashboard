@@ -1,0 +1,21 @@
+[
+  {
+    "name": "Example Landscaping Co.",
+    "website": "example-landscaping.com",
+    "github_repo": "your-github-username/example-landscaping",
+    "ga4_property_id": null,
+    "contacts": [
+      {"name": "Jane Doe", "email": "jane@example.com"}
+    ]
+  },
+  {
+    "name": "Example Rentals",
+    "website": "example-rentals.com",
+    "github_repo": null,
+    "ga4_property_id": null,
+    "contacts": [
+      {"name": "John Smith", "email": "john@example.com"},
+      {"name": "Alex Rivera", "email": "alex@example.com"}
+    ]
+  }
+]

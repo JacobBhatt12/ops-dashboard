@@ -1,0 +1,94 @@
+# Nimble Email Sender - configuration
+# Every operational knob lives here. Edit this, not the code.
+
+sender:
+  address: "you@example.com"
+  display_name: "Your Name"
+
+volume:
+  # How many emails to send per run.
+  daily_target: 200
+
+  # Minimum whole days between two sends to the SAME person.
+  # 2 = "not the next day, but the day after the next is fine".
+  # 1 would allow consecutive days. 0 disables the rule entirely.
+  min_gap_days: 2
+
+  # Hard ceiling on lifetime touches per person. 0 = unlimited.
+  # Leave at 0 to match the current spec; raise the floor later if you
+  # decide to cap how many times one prospect ever hears from you.
+  max_lifetime_touches: 0
+
+schedule:
+  # Local clock window the batch is spread across (24h, America/New_York).
+  # Starts at 10, not earlier — no reliable wifi at home before then.
+  start_hour: 10
+  end_hour: 20
+
+  # Gap between sends is randomized. The bot computes the mean gap needed
+  # to fit daily_target into the window, then jitters each gap by this
+  # fraction. 0.5 = each gap lands between 50% and 150% of the mean.
+  jitter: 0.5
+
+  # Never go below this many seconds between two sends, whatever the math
+  # says. A tight uniform burst is the loudest automation signal there is.
+  min_gap_seconds: 45
+
+  # Skip weekends.
+  weekdays_only: true
+
+selection:
+  # Contacts are bucketed by how many times they've been touched, and the
+  # bot fills the batch from the lowest bucket up. Within a bucket the
+  # order is random. This burns through never-contacted prospects before
+  # it starts repeating anyone.
+  prefer_least_contacted: true
+
+  # Don't put two contacts at the same email domain next to each other in
+  # the send order.
+  spread_same_domain: true
+
+safety:
+  # Refuse to run if the batch would exceed this. Guard against a config
+  # typo turning 200 into 2000.
+  max_batch_hard_ceiling: 400
+
+  # Gmail Workspace caps external recipients per day. The bot stops here
+  # regardless of daily_target.
+  daily_api_ceiling: 1500
+
+  # Scan for bounces and opt-out replies before every send run.
+  scan_before_send: true
+
+  # Treat a reply containing any of these (case-insensitive, whole word)
+  # as an opt-out and block the sender permanently.
+  optout_phrases:
+    - unsubscribe
+    - "opt out"
+    - "opt-out"
+    - "remove me"
+    - "take me off"
+    - "stop emailing"
+    - "do not contact"
+    - "no thank you"
+    - "not interested"
+
+notify:
+  # Push a one-line summary to your phone after every real run, via
+  # ntfy.sh (free, no account - install the ntfy app and subscribe to
+  # this exact topic name). Carrier email-to-SMS (T-Mobile) silently
+  # dropped test messages, so that's kept only as a fallback below.
+  # Set enabled: false to go back to silent / status.sh-only.
+  enabled: true
+  ntfy_topic: "REMOVED"
+  to: "REMOVED"
+
+paths:
+  contacts_xlsx: "data/Master List - All Contacts.xlsx"
+  contacts_sheet: "Master List"
+  state_db: "data/outreach.db"
+  manual_blocklist: "data/blocklist.txt"
+  seed_history: "data/seed_history.csv"
+  oauth_client_secret: "data/client_secret.json"
+  oauth_token: "data/token.json"
+  log_dir: "logs"

@@ -1,0 +1,14 @@
+# Monthly client-report agent (monthly_agent.py, management_app.py)
+requests>=2.31.0
+twilio>=9.0.0
+matplotlib>=3.8.0
+pillow>=10.0.0
+pywebview>=5.0
+
+# Cold outreach bot (bot/)
+google-api-python-client>=2.120.0
+google-auth-oauthlib>=1.2.0
+google-auth-httplib2>=0.2.0
+openpyxl>=3.1.2
+PyYAML>=6.0.1
+google-analytics-data>=0.18.0

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en" class="motion">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>TheraWeb — Customers</title>
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem("theraweb-theme");
+        if (stored === "light" || stored === "dark") document.documentElement.setAttribute("data-theme", stored);
+      } catch (error) { /* private mode etc. */ }
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="app-shell" data-page="customers">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="sidebar-overlay" id="sidebar-overlay" hidden></div>
+
+  <aside class="sidebar" id="sidebar">
+    <a class="sidebar-brand" href="/" aria-label="TheraWeb dashboard home">
+      <img src="/assets/tw-logo.png" alt="" width="32" height="32">
+      <span class="sidebar-brand-text"><strong>TheraWeb</strong><span>Dashboard</span></span>
+    </a>
+    <button class="sidebar-collapse" id="sidebar-collapse" type="button" aria-label="Collapse sidebar" aria-expanded="true">
+      <svg class="icon" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
+    </button>
+
+    <nav class="sidebar-nav" aria-label="Primary">
+      <div class="sidebar-section" data-section="workspace" data-open="true">
+        <button class="sidebar-section-label" type="button" aria-expanded="true"><span>Workspace</span><svg class="icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg></button>
+        <div class="sidebar-section-links">
+          <a class="sidebar-link" href="/">
+            <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg>
+            <span>Client reports</span><span class="sidebar-badge" data-badge="reports"></span>
+          </a>
+          <a class="sidebar-link" href="/outreach">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M22 2 11 13"></path><path d="m22 2-7 20-4-9-9-4Z"></path></svg>
+            <span>Cold outreach</span><span class="sidebar-badge" data-badge="outreach"></span>
+          </a>
+          <a class="sidebar-link" href="/errors">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"></path><path d="M12 9v4M12 17h.01"></path></svg>
+            <span>Errors</span>
+          </a>
+        </div>
+      </div>
+      <div class="sidebar-section" data-section="business" data-open="true">
+        <button class="sidebar-section-label" type="button" aria-expanded="true"><span>Business</span><svg class="icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg></button>
+        <div class="sidebar-section-links">
+          <a class="sidebar-link" href="/customers" aria-current="page">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span>Customers</span>
+          </a>
+          <a class="sidebar-link" href="/keys">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"></circle><path d="m21 2-9.6 9.6M15.5 7.5 19 11l3-3"></path></svg>
+            <span>Web3Forms keys</span>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span class="avatar" aria-hidden="true">JB</span>
+      <span class="sidebar-user"><strong>Your Name</strong><span>Owner · 127.0.0.1:8787</span></span>
+    </div>
+  </aside>
+
+  <div class="app-main">
+    <header class="topbar">
+      <button class="sidebar-menu-button" id="sidebar-menu-button" type="button" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      </button>
+      <label class="topbar-search">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+        <input type="search" id="page-search" placeholder="Search by name, email, client…" aria-label="Filter this page">
+        <kbd>⌘K</kbd>
+      </label>
+      <div class="topbar-actions">
+
+        <button class="btn icon-only ghost" type="button" data-theme-toggle aria-label="Toggle color theme">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path></svg>
+        </button>
+      </div>
+    </header>
+
+    <main id="main" class="app-content">
+      <div class="page-heading">
+        <h1>Customers</h1>
+        <p>Every client contact and their website, from <code>data/customers.json</code>. Update that file to keep this in sync.</p>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="card kpi c1" data-reveal>
+          <div class="kpi-body">
+            <div class="kpi-text">
+              <p class="kpi-label">Clients</p>
+              <p class="kpi-value" id="stat-clients">0</p>
+              <div class="kpi-delta">Websites on file</div>
+            </div>
+            <div class="kpi-icon"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 9h18M9 21V9"></path></svg></div>
+          </div>
+        </div>
+        <div class="card kpi c2" data-reveal>
+          <div class="kpi-body">
+            <div class="kpi-text">
+              <p class="kpi-label">Contacts</p>
+              <p class="kpi-value" id="stat-count">0</p>
+              <div class="kpi-delta" id="stat-count-note">Loading…</div>
+            </div>
+            <div class="kpi-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+          </div>
+        </div>
+      </div>
+
+      <section class="card col-12" data-reveal aria-labelledby="customers-heading">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title" id="customers-heading">All clients</h2>
+            <p class="card-desc" id="customers-count">Loading…</p>
+          </div>
+        </div>
+        <div class="card-body flush">
+          <div id="customers-list" class="table" aria-live="polite">
+            <div class="loading-state"><span class="spinner" aria-hidden="true"></span>Loading customers</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/vendor/gsap.min.js"></script>
+  <script src="/motion.js" defer></script>
+  <script src="/shell.js" defer></script>
+  <script src="/customers.js" defer></script>
+</body>
+</html>

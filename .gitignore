@@ -1,0 +1,16 @@
+.env
+data/
+venv/
+__pycache__/
+logs/
+*.log
+schedule_log.txt
+schedule_config.json
+agent_log.txt
+.DS_Store
+
+# One-time historical import script — hardcodes real prospect emails and
+# opt-out notes from the cold-outreach bot's manual send log. Not needed to
+# run the bot (see bot.run_daily / bot.status_json); already seeded into
+# data/outreach.db, which is itself gitignored.
+bot/seed.py
