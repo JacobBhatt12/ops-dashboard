@@ -781,7 +781,7 @@ def build_email_html(contact_name, client_name, website, report):
     <td style="padding:0 36px 32px;">
       <p style="margin:0;font-size:11px;color:#888888;text-align:center;line-height:1.6;">
         Thera Web Design &nbsp;·&nbsp;
-        <a href="mailto:you@example.com" style="color:#888888;">you@example.com</a>
+        <a href="mailto:{GMAIL_ADDRESS}" style="color:#888888;">{GMAIL_ADDRESS}</a>
         <br>Auto-generated on {generated}
       </p>
     </td>

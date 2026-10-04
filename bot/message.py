@@ -12,9 +12,32 @@ Two rules that have each been broken once in production and cost a batch:
 """
 from __future__ import annotations
 
+import os
+import re
+
+from . import config as _config  # noqa: F401  (loads .env)
+
 SUBJECT = "Your branded website"
 
 CASE_STUDY_URL = "https://bhatt-linderteam.com/"
+
+# --- sender identity -------------------------------------------------------
+# Personal contact details live in .env (gitignored), not in this file:
+#   SENDER_NAME, SENDER_PHONE, BUSINESS_WEBSITE, BUSINESS_POSTAL_ADDRESS
+# self_check() refuses to send if the postal address is missing.
+
+SENDER_NAME = os.environ.get("SENDER_NAME", "").strip()
+SENDER_PHONE = os.environ.get("SENDER_PHONE", "").strip()          # e.g. (555) 123-4567
+BUSINESS_WEBSITE = os.environ.get("BUSINESS_WEBSITE", "").strip()  # e.g. example.com
+POSTAL_ADDRESS = os.environ.get("BUSINESS_POSTAL_ADDRESS", "").strip()
+
+_digits = re.sub(r"\D", "", SENDER_PHONE)
+SENDER_TEL = ("+1" + _digits) if len(_digits) == 10 else ("+" + _digits if _digits else "")
+
+
+def _html(s: str) -> str:
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("·", "&middot;")
+
 
 # --- signature -------------------------------------------------------------
 
@@ -25,26 +48,27 @@ SIGNATURE_HTML = """<div class="hmail-signature-prefix">--</div>
       <tr>
         <td style="width:2px;background-color:#7FAF57;font-size:0;line-height:0;">&nbsp;</td>
         <td style="padding:0 0 0 16px;vertical-align:middle;">
-          <div style="font-size:16px;line-height:20px;font-weight:bold;color:#111111;">Your Name</div>
+          <div style="font-size:16px;line-height:20px;font-weight:bold;color:#111111;">{name}</div>
           <div style="font-size:13px;line-height:18px;color:#444444;padding-top:2px;">Founder &amp; Lead Designer &middot; TheraWeb</div>
           <div style="font-size:13px;line-height:18px;color:#7FAF57;padding-bottom:6px;">Website Design &amp; Digital Branding</div>
           <div style="font-size:13px;line-height:20px;color:#444444;">
-            <a href="https://example.com" style="color:#111111;text-decoration:none;font-weight:bold;">example.com</a>
+            <a href="https://{site}" style="color:#111111;text-decoration:none;font-weight:bold;">{site}</a>
             <span style="color:#cccccc;padding:0 6px;">|</span>
-            <a href="tel:+15555550100" style="color:#444444;text-decoration:none;">(555) 555-0100</a>
+            <a href="tel:{tel}" style="color:#444444;text-decoration:none;">{phone}</a>
           </div>
         </td>
       </tr>
     </tbody>
   </table>
-</div>"""
+</div>""".format(name=_html(SENDER_NAME), site=_html(BUSINESS_WEBSITE), tel=SENDER_TEL,
+                 phone=_html(SENDER_PHONE))
 
-SIGNATURE_TEXT = """--
+SIGNATURE_TEXT = f"""--
 
-Your Name
+{SENDER_NAME}
 Founder & Lead Designer · TheraWeb
 Website Design & Digital Branding
-example.com ( https://example.com ) | (555) 555-0100 ( tel:+15555550100 )"""
+{BUSINESS_WEBSITE} ( https://{BUSINESS_WEBSITE} ) | {SENDER_PHONE} ( tel:{SENDER_TEL} )"""
 
 # --- CAN-SPAM footer -------------------------------------------------------
 # Required on every commercial message: a working opt-out and a valid physical
@@ -52,13 +76,13 @@ example.com ( https://example.com ) | (555) 555-0100 ( tel:+15555550100 )"""
 
 FOOTER_TEXT = ("You're receiving this because I thought TheraWeb might be a fit "
                "for your business. Reply \"unsubscribe\" and I won't contact you again.\n"
-               "[business name] · [postal address]")
+               + POSTAL_ADDRESS)
 
 FOOTER_HTML = """<div style="font-size:11px;line-height:16px;color:#888888;padding-top:14px;font-family:Arial,Helvetica,sans-serif;">
   You're receiving this because I thought TheraWeb might be a fit for your business.
   Reply "unsubscribe" and I won't contact you again.<br>
-  [business name] &middot; [postal address]
-</div>"""
+  {address}
+</div>""".format(address=_html(POSTAL_ADDRESS))
 
 # --- body ------------------------------------------------------------------
 
@@ -112,7 +136,7 @@ def self_check() -> None:
         "'free' was deliberately removed from the sign-off"
     assert "unsubscribe" in text.lower() and "unsubscribe" in html.lower(), \
         "CAN-SPAM opt-out missing"
-    assert "[postal address]" in text and "[postal address]" in html, \
-        "CAN-SPAM physical address missing"
+    assert POSTAL_ADDRESS and POSTAL_ADDRESS in text and _html(POSTAL_ADDRESS) in html, \
+        "CAN-SPAM physical address missing: set BUSINESS_POSTAL_ADDRESS in .env"
     assert "Founder &amp; Lead Designer" in html, "signature missing from html"
     assert "Founder & Lead Designer" in text, "signature missing from text"

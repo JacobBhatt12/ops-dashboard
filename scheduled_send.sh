@@ -5,5 +5,5 @@
 # texts the owner a summary. No TTY is available here, so this intentionally
 # does NOT share run_thera_agent.sh's interactive-only guard.
 
-cd "/Users/you/Desktop/THERAWEB/Management App " || exit 1
+cd "$(dirname "$0")" || exit 1
 exec "./venv/bin/python3" "./monthly_agent.py"

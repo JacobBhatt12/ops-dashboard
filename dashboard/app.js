@@ -161,7 +161,7 @@ async function sendEmails() {
     if (!response.ok) throw new Error(data.error || "The emails could not be sent");
 
     if (data.failed_count) {
-      showMessage(`Sent ${data.sent_count} email${data.sent_count === 1 ? "" : "s"}. ${data.failed_count} failed. The Cold outreach page lists every send with its error.`, "error");
+      showMessage(`Sent ${data.sent_count} email${data.sent_count === 1 ? "" : "s"}. ${data.failed_count} failed. The send log at /outreach lists every send with its error.`, "error");
     } else {
       showMessage(`Sent ${data.sent_count} report${data.sent_count === 1 ? "" : "s"} successfully.`, "success");
       setAllRecipients(false);

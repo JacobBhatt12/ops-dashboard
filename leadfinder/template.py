@@ -15,11 +15,12 @@ from __future__ import annotations
 
 import re
 
-from bot.message import FOOTER_HTML, FOOTER_TEXT, SIGNATURE_HTML, SIGNATURE_TEXT
+from bot.message import (BUSINESS_WEBSITE, FOOTER_HTML, FOOTER_TEXT, POSTAL_ADDRESS,
+                         SIGNATURE_HTML, SIGNATURE_TEXT)
 
 SUBJECT = "quick question about your website"
 SUBJECT_NO_SITE = "quick question about {name}"
-SITE_URL = "https://example.com/"
+SITE_URL = f"https://{BUSINESS_WEBSITE}/"
 
 # In priority order: the first issue the lead has wins.
 HOOKS = [
@@ -106,7 +107,7 @@ def render_lead(lead) -> tuple[str, str, str]:
     html = (
         '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;color:#222222;">'
         + p.format(_esc(greeting)) + p.format(_esc(opener)) + p.format(_esc(pitch))
-        + p.format(f'{_esc(proof)} <a href="{SITE_URL}" style="color:#7FAF57;">example.com</a>')
+        + p.format(f'{_esc(proof)} <a href="{SITE_URL}" style="color:#7FAF57;">{_esc(BUSINESS_WEBSITE)}</a>')
         + '<p style="margin:0 0 20px 0;">' + _esc(close) + "</p>"
         + SIGNATURE_HTML + FOOTER_HTML + "</div>"
     )
@@ -124,6 +125,8 @@ def self_check() -> None:
     for body in (text, html):
         assert "—" not in body and "–" not in body, "no em/en dashes in outreach copy"
         assert "unsubscribe" in body.lower(), "CAN-SPAM opt-out missing"
-        assert "[postal address]" in body, "CAN-SPAM postal address missing"
+        assert POSTAL_ADDRESS and (POSTAL_ADDRESS in body
+                                   or _esc(POSTAL_ADDRESS).replace("·", "&middot;") in body), \
+            "CAN-SPAM postal address missing: set BUSINESS_POSTAL_ADDRESS in .env"
     assert "Hey Sunshine Pool Service team," in text
-    assert "example.com" in text
+    assert BUSINESS_WEBSITE and BUSINESS_WEBSITE in text, "set BUSINESS_WEBSITE in .env"

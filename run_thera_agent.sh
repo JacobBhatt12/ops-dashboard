@@ -6,4 +6,5 @@ if [[ ! -t 1 ]]; then
     exit 0
 fi
 
-"/Users/you/Desktop/THERAWEB/Management App /venv/bin/python3" "/Users/you/Desktop/THERAWEB/Management App /management_app.py"
+cd "$(dirname "$0")" || exit 1
+exec "./venv/bin/python3" "./management_app.py"

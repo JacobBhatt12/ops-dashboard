@@ -2,8 +2,9 @@
 # Every operational knob lives here. Edit this, not the code.
 
 sender:
-  address: "you@example.com"
-  display_name: "Your Name"
+  # Set SENDER_EMAIL and SENDER_NAME in .env (gitignored); these are fallbacks.
+  address: ""
+  display_name: ""
 
 volume:
   # How many emails to send per run.

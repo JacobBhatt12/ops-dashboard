@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import random
 import sys
 import time
@@ -121,9 +122,15 @@ def main(argv=None):
     if n:
         log.info(f"Manual blocklist: {n} new entries")
 
+    if not (os.environ.get("SENDER_EMAIL") or cfg["sender"]["address"]):
+        log.error("No sender address. Set SENDER_EMAIL in .env.")
+        store.close()
+        return 1
+
     client = GmailClient(
         cfg.path("oauth_client_secret"), cfg.path("oauth_token"),
-        cfg["sender"]["address"], cfg["sender"].get("display_name", ""),
+        os.environ.get("SENDER_EMAIL") or cfg["sender"]["address"],
+        os.environ.get("SENDER_NAME") or cfg["sender"].get("display_name", ""),
         dry_run=args.dry_run,
     )
 

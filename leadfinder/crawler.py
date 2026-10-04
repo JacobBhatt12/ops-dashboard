@@ -23,7 +23,9 @@ import requests
 
 from .overture import is_social
 
-USER_AGENT = "TheraWebLeadCheck/1.0 (+https://example.com)"
+from bot.message import BUSINESS_WEBSITE  # noqa: E402  (also loads .env)
+
+USER_AGENT = f"TheraWebLeadCheck/1.0 (+https://{BUSINESS_WEBSITE})"
 TIMEOUT = 12
 MAX_BYTES = 1_500_000
 
