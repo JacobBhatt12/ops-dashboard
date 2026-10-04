@@ -169,4 +169,11 @@ def plan_schedule(count, cfg, *, now=None, rng=None):
         gap = mean_gap * (1 + rng.uniform(-jitter, jitter))
         gap = max(floor, gap)
         t = t + timedelta(seconds=gap)
+    # Jitter can add up past end_hour; squeeze the plan back inside the
+    # window unless that would break the floor gap.
+    span = (times[-1] - start).total_seconds()
+    if span > window:
+        scale = window / span
+        if mean_gap * scale >= floor:
+            times = [start + (x - start) * scale for x in times]
     return times

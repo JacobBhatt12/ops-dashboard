@@ -23,7 +23,7 @@ schedule:
   # Local clock window the batch is spread across (24h, America/New_York).
   # Starts at 10, not earlier — no reliable wifi at home before then.
   start_hour: 10
-  end_hour: 20
+  end_hour: 22
 
   # Gap between sends is randomized. The bot computes the mean gap needed
   # to fit daily_target into the window, then jitters each gap by this

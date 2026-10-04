@@ -28,6 +28,7 @@ TIMEOUT = 12
 MAX_BYTES = 1_500_000
 
 _EMAIL = re.compile(r"[A-Za-z0-9._%+\-]{1,64}@[A-Za-z0-9.\-]{1,190}\.[A-Za-z]{2,24}")
+_OBFUSCATED_AT = re.compile(r"[\[\(\{]\s*at\s*[\]\)\}]", re.I)
 _MAILTO = re.compile(r"""mailto:([^"'?>\s]+)""", re.I)
 _HREF = re.compile(r"""<a\b[^>]*href\s*=\s*["']([^"'#]+)["'][^>]*>(.*?)</a>""", re.I | re.S)
 _VIEWPORT = re.compile(r"""<meta[^>]+name\s*=\s*["']viewport["']""", re.I)
@@ -103,7 +104,9 @@ def _get(sess, url):
     for chunk in r.iter_content(65536, decode_unicode=False):
         chunks.append(chunk)
         size += len(chunk)
-        if size > MAX_BYTES:
+        # The timeout is per read, so a server trickling bytes could hold a
+        # worker for minutes. Cap the whole download too.
+        if size > MAX_BYTES or time.monotonic() - t0 > TIMEOUT + 8:
             break
     r.close()
     raw = b"".join(chunks)
@@ -131,10 +134,20 @@ def extract_emails(page_html: str) -> list[tuple[str, str]]:
     for m in _MAILTO.finditer(page_html):
         found.append((htmllib.unescape(m.group(1)), "mailto"))
     text = htmllib.unescape(page_html)
-    text = re.sub(r"\s*[\[\(\{]\s*at\s*[\]\)\}]\s*", "@", text, flags=re.I)
-    text = re.sub(r"\s*[\[\(\{]\s*dot\s*[\]\)\}]\s*", ".", text, flags=re.I)
-    for m in _EMAIL.finditer(text):
-        found.append((m.group(0), "page"))
+    if _OBFUSCATED_AT.search(text):
+        text = re.sub(r"\s*[\[\(\{]\s*at\s*[\]\)\}]\s*", "@", text, flags=re.I)
+        text = re.sub(r"\s*[\[\(\{]\s*dot\s*[\]\)\}]\s*", ".", text, flags=re.I)
+    # Only scan around each "@": running _EMAIL over a whole 1.5 MB page
+    # starves thera-server's quarter of a CPU.
+    i = text.find("@")
+    while i != -1:
+        lo = max(0, i - 64)
+        m = _EMAIL.search(text, lo, i + 216)
+        while m and m.end() <= i:
+            m = _EMAIL.search(text, m.end(), i + 216)
+        if m and m.start() <= i:
+            found.append((m.group(0), "page"))
+        i = text.find("@", i + 1)
     out, seen = [], set()
     for e, how in found:
         e = e.strip().strip(".,;:").lower()

@@ -177,6 +177,10 @@ def _connect():
     except ImportError as e:
         raise RuntimeError("duckdb is not installed. Run: ./venv/bin/pip install duckdb") from e
     con = duckdb.connect()
+    # thera-server has ~1 GB RAM and no swap; DuckDB's default (80% of RAM)
+    # would leave nothing for the dashboard. Spill to disk instead.
+    con.execute(f"SET memory_limit='{os.environ.get('LEADFINDER_DUCKDB_MEMORY', '300MB')}';")
+    con.execute("SET threads=2; SET preserve_insertion_order=false;")
     if os.environ.get("LEADFINDER_OVERTURE_PATH"):
         return con  # local test file, no S3
     con.execute("INSTALL httpfs; LOAD httpfs;")
@@ -205,6 +209,13 @@ def fetch_state(state: str, groups: list[str], *, release: str, min_confidence=0
         "lower(coalesce(categories.primary, ''))",
     ]
     con = _connect()
+    try:
+        return _query(con, cat_exprs, path, x0, y0, x1, y1, state, min_confidence, kw, ex, release, log)
+    finally:
+        con.close()  # hand DuckDB's buffers back before the crawl starts
+
+
+def _query(con, cat_exprs, path, x0, y0, x1, y1, state, min_confidence, kw, ex, release, log):
     last_err = None
     for cat in cat_exprs:
         sql = f"""

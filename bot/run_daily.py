@@ -27,7 +27,7 @@ from .gmail_client import GmailClient
 from .message import render, self_check
 from .notify import notify
 from .scanner import scan
-from .selector import _spread_domains, adjacency_report, plan_schedule, select_batch
+from .selector import Selection, _spread_domains, adjacency_report, plan_schedule, select_batch
 from .store import Store
 
 try:  # Lead Finder is optional; the realtor bot runs fine without it.
@@ -146,26 +146,31 @@ def main(argv=None):
                 store.close()
                 return 2
 
-    # 3. Load contacts
+    # 3. Load contacts (skipped when Lead Finder is the only source)
+    lf = lead_settings.load() if lead_settings else {}
+    use_contacts = bool(lf.get("contact_list_enabled", True))
     xlsx = cfg.path("contacts_xlsx")
-    if not xlsx.exists():
+    contacts = []
+    if not use_contacts:
+        log.info("Contact list is off (Lead Finder only)")
+    elif not xlsx.exists():
         log.error(f"Contact list not found: {xlsx}")
         if not args.dry_run and not args.preview:
             notify(cfg, client, "Nimble Email Sender: run FAILED (contact list "
                    "missing, nothing sent). Check logs/.", log=log.info)
         store.close()
         return 1
-    contacts = load_contacts(xlsx, cfg["paths"]["contacts_sheet"])
-    log.info(f"Loaded {len(contacts)} contacts from {xlsx.name}")
+    else:
+        contacts = load_contacts(xlsx, cfg["paths"]["contacts_sheet"])
+        log.info(f"Loaded {len(contacts)} contacts from {xlsx.name}")
 
-    warned = [c for c in contacts if c.warnings]
-    if warned:
-        log.info(f"  {len(warned)} rows carry data-quality warnings "
-                 f"(see --preview for detail)")
+        warned = [c for c in contacts if c.warnings]
+        if warned:
+            log.info(f"  {len(warned)} rows carry data-quality warnings "
+                     f"(see --preview for detail)")
 
     # 3b. Bounce guard: if too many hard bounces came back lately, stop
     #     everything before it costs the domain its reputation.
-    lf = lead_settings.load() if lead_settings else {}
     if lead_settings and not args.preview:
         ok, why = bounce_guard(store, float(lf.get("max_bounce_rate", 0.03)))
         log.info(f"Bounce check: {why}")
@@ -185,15 +190,20 @@ def main(argv=None):
             0, int(cfg["volume"]["daily_target"]) - already)
 
     # 4a. Approved Lead Finder businesses take their share of today's slots
-    #     first; the realtor list fills the rest.
+    #     first; the realtor list fills the rest. With the contact list off,
+    #     Lead Finder gets the whole daily target.
     lead_batch, lead_store = [], None
+    target = int(cfg["volume"]["daily_target"])
     if lf.get("send_enabled"):
-        want = min(int(lf.get("per_day", 0)), int(cfg["volume"]["daily_target"]))
-        lead_batch, lead_store = take_leads(store, want)
-        log.info(f"Lead Finder: {len(lead_batch)} approved businesses in today's batch (up to {want})")
-        cfg["volume"]["daily_target"] = int(cfg["volume"]["daily_target"]) - len(lead_batch)
+        want = min(int(lf.get("per_day", 0)), target) if use_contacts else target
+        lead_batch, lead_store = take_leads(store, want, bool(lf.get("auto_approve")))
+        log.info(f"Lead Finder: {len(lead_batch)} businesses in today's batch (up to {want})")
+        cfg["volume"]["daily_target"] = target - len(lead_batch)
 
-    sel = select_batch(contacts, store, cfg, today=today, rng=rng)
+    if use_contacts:
+        sel = select_batch(contacts, store, cfg, today=today, rng=rng)
+    else:
+        sel = Selection([], {"shortfall": target - len(lead_batch)} if len(lead_batch) < target else {})
     if lead_batch:
         sel.batch = _spread_domains(lead_batch + sel.batch, rng)
         sel.stats["lead_finder"] = len(lead_batch)

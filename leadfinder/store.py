@@ -201,10 +201,15 @@ class LeadStore:
 
     # ---------- sending ----------
 
-    def approved_batch(self, n: int, blocked_emails: set[str]) -> list[sqlite3.Row]:
+    def approved_batch(self, n: int, blocked_emails: set[str],
+                       include_ready: bool = False) -> list[sqlite3.Row]:
+        # include_ready = auto-approve: hand-approved leads first, then the
+        # oldest ready ones.
+        where = "status IN ('approved','ready')" if include_ready else "status='approved'"
         out = []
         for r in self.conn.execute(
-                "SELECT * FROM leads WHERE status='approved' ORDER BY approved_at, id"):
+                f"SELECT * FROM leads WHERE {where}"
+                " ORDER BY status='approved' DESC, approved_at, checked_at, id"):
             if r["email"] in blocked_emails:
                 self.conn.execute("UPDATE leads SET status='blocked' WHERE id=?", (r["id"],))
                 continue

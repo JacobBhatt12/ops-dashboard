@@ -66,15 +66,15 @@ def bounce_guard(store, max_rate: float, min_sends: int = 100) -> tuple[bool, st
     return rate <= max_rate, msg
 
 
-def take_leads(store, n: int) -> tuple[list[LeadContact], LeadStore | None]:
-    """Up to n approved leads that are safe to email today."""
+def take_leads(store, n: int, include_ready: bool = False) -> tuple[list[LeadContact], LeadStore | None]:
+    """Up to n approved (or, with include_ready, ready) leads that are safe to email today."""
     if n <= 0 or not S.LEADS_DB_PATH.is_file():
         return [], None
     template_self_check()
     ls = LeadStore()
     blocked = store.blocked_emails()
     sent_before = {r[0] for r in store.conn.execute("SELECT DISTINCT email FROM sends")}
-    rows = ls.approved_batch(n + 50, blocked)
+    rows = ls.approved_batch(n + 50, blocked, include_ready)
     out = []
     for r in rows:
         if r["email"] in sent_before:

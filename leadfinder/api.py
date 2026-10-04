@@ -119,8 +119,9 @@ def update_settings(payload: dict) -> dict:
     clean = {}
     if "send_enabled" in payload:
         clean["send_enabled"] = bool(payload["send_enabled"])
-    if "skip_healthy_sites" in payload:
-        clean["skip_healthy_sites"] = bool(payload["skip_healthy_sites"])
+    for key in ("skip_healthy_sites", "auto_approve", "contact_list_enabled"):
+        if key in payload:
+            clean[key] = bool(payload[key])
     if "per_day" in payload:
         v = int(payload["per_day"])
         if not 0 <= v <= 400:

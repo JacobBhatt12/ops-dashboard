@@ -20,6 +20,11 @@ DEFAULTS = {
     # How many of the bot's daily slots go to approved business leads.
     # The realtor list fills whatever is left of daily_target.
     "per_day": 100,
+    # Send "ready" leads without a manual approve click.
+    "auto_approve": False,
+    # Also send to the realtor contact list (data/Master List). Off means
+    # Lead Finder is the bot's only source.
+    "contact_list_enabled": True,
     # Where and what to import from Overture.
     "states": ["FL"],
     "categories": ["home_services", "beauty", "fitness", "health", "auto", "pets", "pro_services"],
@@ -29,6 +34,10 @@ DEFAULTS = {
     "nightly_enabled": False,
     "nightly_limit": 1000,
     "nightly_hour": 1,
+    # The nightly run stops crawling once this many leads are queued to send,
+    # and imports the next state in `states` when fewer than nightly_limit
+    # businesses are left to check.
+    "nightly_target_ready": 300,
     # Skip leads whose site looks modern and healthy (no hook to open with).
     "skip_healthy_sites": False,
     # Pause ALL sending if hard bounces over the last 3 send days exceed this.
