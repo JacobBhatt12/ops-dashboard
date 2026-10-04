@@ -760,3 +760,62 @@ body.sidebar-collapsed .sidebar-collapse { transform: rotate(180deg); }
   }
   html.motion [data-reveal] { opacity: 1; animation: none; }
 }
+
+/* ---------------------------------------------------------------------
+   Lead Finder
+--------------------------------------------------------------------- */
+.lf-stack { display: grid; gap: 16px; }
+.lf-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.lf-states { padding: 2px; }
+.lf-bulk [hidden], .lf-stack [hidden] { display: none !important; }
+.lf-stack .field input, .lf-stack .field select { min-width: 0; width: 100%; }
+.lf-stack .toggle-label { white-space: normal; }
+.lf-chip { position: relative; display: inline-flex; }
+.lf-chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.lf-chip span {
+  display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border: 1px solid var(--border);
+  border-radius: 999px; background: var(--surface); color: var(--muted); font-size: var(--text-xs); font-weight: 500;
+  cursor: pointer; transition: background 150ms var(--ease-out), color 150ms var(--ease-out), border-color 150ms var(--ease-out);
+}
+.lf-chip span:hover { color: var(--ink); border-color: var(--border-strong); }
+.lf-chip input:checked + span { background: var(--accent); border-color: transparent; color: var(--accent-contrast); }
+.lf-chip input:focus-visible + span { outline: 2px solid color-mix(in oklab, var(--focus) 75%, transparent); outline-offset: 2px; }
+.lf-actions { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+.lf-divider { width: 1px; align-self: stretch; background: var(--border); margin: 0 4px; }
+.lf-inline { width: 120px; }
+.lf-job { display: grid; gap: 8px; padding: 12px; border: 1px dashed var(--border-strong); border-radius: var(--radius); }
+.lf-job-line { display: flex; align-items: center; gap: 8px; font-size: var(--text-sm); }
+.lf-job.is-done .spinner { display: none; }
+.lf-review-header { flex-wrap: wrap; gap: 12px; }
+.lf-bulk { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 0 var(--card-pad) 12px; }
+.lf-check-all { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: var(--text-sm); cursor: pointer; }
+.lf-check-all input, .lead-row input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.lead-row { grid-template-columns: 28px minmax(0, 1.6fr) minmax(0, 1.5fr) minmax(0, 0.9fr) minmax(0, 1.1fr) 84px; }
+.lead-row.no-check { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.5fr) minmax(0, 0.9fr) minmax(0, 1.1fr) 84px; }
+.lead-row a { color: inherit; }
+.lead-row .pill { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lf-more { display: flex; justify-content: center; padding: 8px 0 12px; }
+.lf-more:has(#more-btn[hidden]) { display: none; }
+.lf-dialog {
+  width: min(680px, calc(100vw - 32px)); max-height: calc(100vh - 64px); padding: 0; border: 1px solid var(--border);
+  border-radius: var(--radius-lg); background: var(--surface); color: var(--ink); box-shadow: var(--shadow-lg);
+}
+.lf-dialog::backdrop { background: oklch(0% 0 0 / 0.45); }
+.lf-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: var(--card-pad); border-bottom: 1px solid var(--border); }
+.lf-preview {
+  margin: 0; padding: var(--card-pad); max-height: 60vh; overflow: auto; white-space: pre-wrap; word-break: break-word;
+  font-family: var(--font-body); font-size: var(--text-sm); line-height: 1.6;
+}
+@media (max-width: 900px) {
+  .lead-row { grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) 76px; }
+  .lead-row.no-check { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 76px; }
+  .lead-row .lf-hide-sm { display: none; }
+  .lf-review-header .segmented { max-width: 100%; overflow-x: auto; }
+  .lf-review-header .segmented-item { white-space: nowrap; }
+  .lf-divider { display: none; }
+}
+@media (max-width: 520px) {
+  .lead-row { grid-template-columns: 24px minmax(0, 1fr) 72px; }
+  .lead-row.no-check { grid-template-columns: minmax(0, 1fr) 72px; }
+  .lead-row > span:nth-last-child(4) { display: none; }
+}

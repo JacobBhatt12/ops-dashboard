@@ -27,8 +27,14 @@ from .gmail_client import GmailClient
 from .message import render, self_check
 from .notify import notify
 from .scanner import scan
-from .selector import adjacency_report, plan_schedule, select_batch
+from .selector import _spread_domains, adjacency_report, plan_schedule, select_batch
 from .store import Store
+
+try:  # Lead Finder is optional; the realtor bot runs fine without it.
+    from leadfinder import settings as lead_settings
+    from leadfinder.bridge import bounce_guard, take_leads
+except Exception:  # pragma: no cover
+    lead_settings = None
 
 
 def setup_logging(cfg, dry_run):
@@ -157,6 +163,20 @@ def main(argv=None):
         log.info(f"  {len(warned)} rows carry data-quality warnings "
                  f"(see --preview for detail)")
 
+    # 3b. Bounce guard: if too many hard bounces came back lately, stop
+    #     everything before it costs the domain its reputation.
+    lf = lead_settings.load() if lead_settings else {}
+    if lead_settings and not args.preview:
+        ok, why = bounce_guard(store, float(lf.get("max_bounce_rate", 0.03)))
+        log.info(f"Bounce check: {why}")
+        if not ok and not args.dry_run:
+            log.error("Bounce rate over the limit. Pausing ALL sends today. "
+                      "Clean the list or raise max_bounce_rate in data/leadfinder.json.")
+            notify(cfg, client, f"Nimble Email Sender: PAUSED, bounce rate too high ({why}). "
+                   "Nothing sent.", log=log.info)
+            store.close()
+            return 3
+
     # 4. Select
     already = store.count_sent_on(today)
     if already:
@@ -164,8 +184,20 @@ def main(argv=None):
         cfg["volume"]["daily_target"] = max(
             0, int(cfg["volume"]["daily_target"]) - already)
 
+    # 4a. Approved Lead Finder businesses take their share of today's slots
+    #     first; the realtor list fills the rest.
+    lead_batch, lead_store = [], None
+    if lf.get("send_enabled"):
+        want = min(int(lf.get("per_day", 0)), int(cfg["volume"]["daily_target"]))
+        lead_batch, lead_store = take_leads(store, want)
+        log.info(f"Lead Finder: {len(lead_batch)} approved businesses in today's batch (up to {want})")
+        cfg["volume"]["daily_target"] = int(cfg["volume"]["daily_target"]) - len(lead_batch)
+
     sel = select_batch(contacts, store, cfg, today=today, rng=rng)
-    log.info(f"Selected {len(sel)} of {cfg['volume']['daily_target']} target")
+    if lead_batch:
+        sel.batch = _spread_domains(lead_batch + sel.batch, rng)
+        sel.stats["lead_finder"] = len(lead_batch)
+    log.info(f"Selected {len(sel)} ({len(lead_batch)} Lead Finder + {len(sel) - len(lead_batch)} contact list)")
     for k in sorted(sel.stats):
         log.info(f"    {k}: {sel.stats[k]}")
     log.info(f"    adjacent same-domain pairs: {adjacency_report(sel.batch)}")
@@ -185,7 +217,7 @@ def main(argv=None):
     # 5. Preview mode
     if args.preview:
         for c in sel.batch[: args.preview]:
-            subj, text, _ = render(c)
+            subj, text, _ = c.render() if getattr(c, "template", "") == "business" else render(c)
             print("\n" + "-" * 72)
             print(f"TO:      {c.email}")
             print(f"NAME:    {c.first_raw!r} {c.last!r}  ->  {c.greeting!r}")
@@ -234,12 +266,16 @@ def main(argv=None):
             elif i:
                 time.sleep(max(1, int(cfg["schedule"].get("min_gap_seconds", 45))))
 
-            subj, text, html = render(c)
+            is_lead = getattr(c, "template", "") == "business"
+            subj, text, html = c.render() if is_lead else render(c)
             try:
                 mid, tid = client.send(c.email, subj, text, html)
                 # Recorded immediately: a crash after this point can never
                 # produce a duplicate on resume.
-                store.record_send(c, message_id=mid, thread_id=tid)
+                store.record_send(c, message_id=mid, thread_id=tid,
+                                  template="business" if is_lead else "standard")
+                if is_lead and lead_store is not None:
+                    lead_store.mark_sent(c.lead_id, mid)
                 sent += 1
                 log.info(f"[{i+1}/{len(sel.batch)}] sent  {c.greeting:<18} {c.email}")
             except Exception as e:

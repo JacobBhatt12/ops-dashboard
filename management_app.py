@@ -27,6 +27,7 @@ from monthly_agent import CLIENTS, get_github_status, get_site_issues, list_reci
 import bot.status_json as outreach_status_json
 from bot.config import Config as OutreachConfig
 from send_log import daily_counts as report_daily_counts, sends_on as report_sends_on
+import leadfinder.api as leads_api
 
 
 PROJECT_DIR = Path(__file__).resolve().parent
@@ -169,6 +170,7 @@ def get_outreach_status_cached():
 # bot's SQLite `sends` table (data/outreach.db, opened read-only). "Today"
 # is the local calendar date, so the panel naturally resets at midnight.
 OUTREACH_SUBJECT = "Your branded website"
+LEADFINDER_SUBJECT = "quick question about your website"
 
 
 def _outreach_db():
@@ -189,7 +191,7 @@ def outreach_sends_on(day):
         return []
     try:
         rows = db.execute(
-            "SELECT email, first_name, last_name, company, sent_at, source "
+            "SELECT email, first_name, last_name, company, sent_at, source, template "
             "FROM sends WHERE sent_on = ? ORDER BY sent_at",
             (day.isoformat(),),
         )
@@ -200,7 +202,7 @@ def outreach_sends_on(day):
                 "to_email": r["email"],
                 "to_name": " ".join(p for p in (r["first_name"], r["last_name"]) if p) or r["email"],
                 "client": r["company"] or "",
-                "subject": OUTREACH_SUBJECT,
+                "subject": LEADFINDER_SUBJECT if r["template"] == "business" else OUTREACH_SUBJECT,
                 "status": "sent",
                 "source": r["source"],
                 "error": None,
@@ -471,6 +473,10 @@ class ManagementHandler(BaseHTTPRequestHandler):
             self._send_json({"customers": load_customers()})
             return
 
+        if path.startswith("/api/leads/"):
+            self._handle_leads_get(path)
+            return
+
         if path == "/api/sent-today":
             self._send_json(get_sent_today())
             return
@@ -490,6 +496,7 @@ class ManagementHandler(BaseHTTPRequestHandler):
             "/errors": "errors.html",
             "/customers": "customers.html",
             "/keys": "keys.html",
+            "/leads": "leads.html",
         }
         if path == "/assets/tw-logo.png":
             file_path = ASSETS_DIR / "tw-logo.png"
@@ -523,8 +530,52 @@ class ManagementHandler(BaseHTTPRequestHandler):
             self._handle_web3forms_unlock()
         elif path == "/api/site-issues/check":
             self._handle_site_issues_check()
+        elif path.startswith("/api/leads/"):
+            self._handle_leads_post(path)
         else:
             self.send_error(404)
+
+    # ── Lead Finder ──────────────────────────────────────────────
+    def _handle_leads_get(self, path):
+        query = parse_qs(urlparse(self.path).query)
+
+        def q(name, default=None):
+            return query.get(name, [default])[0]
+
+        try:
+            if path == "/api/leads/summary":
+                self._send_json(leads_api.summary())
+            elif path == "/api/leads/list":
+                self._send_json(leads_api.list_leads(
+                    q("status", "ready"), int(q("limit", "50")), int(q("offset", "0")), q("q")))
+            elif path == "/api/leads/preview":
+                self._send_json(leads_api.preview(int(q("id", "0"))))
+            else:
+                self.send_error(404)
+        except ValueError as error:
+            self._send_json({"error": str(error)}, status=400)
+        except Exception as error:
+            self._send_json({"error": f"Lead Finder error: {error}"}, status=500)
+
+    def _handle_leads_post(self, path):
+        try:
+            payload = self._read_json_body()
+            if path == "/api/leads/review":
+                result = leads_api.review(payload)
+            elif path == "/api/leads/settings":
+                result = {"settings": leads_api.update_settings(payload)}
+            elif path == "/api/leads/job":
+                result = leads_api.start_job(payload)
+            else:
+                self.send_error(404)
+                return
+            self._send_json(result)
+        except (ValueError, TypeError, json.JSONDecodeError) as error:
+            self._send_json({"error": str(error)}, status=400)
+        except RuntimeError as error:
+            self._send_json({"error": str(error)}, status=409)
+        except Exception as error:
+            self._send_json({"error": f"Lead Finder error: {error}"}, status=500)
 
     def _handle_site_issues_check(self):
         if not SITE_ISSUES_CHECK_LOCK.acquire(blocking=False):

@@ -125,6 +125,13 @@ async function loadSidebarBadges() {
     if (reports) reports.textContent = data.counts.reports ? String(data.counts.reports) : "";
     if (outreach) outreach.textContent = data.counts.outreach ? String(data.counts.outreach) : "";
   } catch (error) { /* badge is decoration only */ }
+  try {
+    const response = await fetch("/api/leads/summary", { cache: "no-store" });
+    if (!response.ok) return;
+    const data = await response.json();
+    const leads = document.querySelector('[data-badge="leads"]');
+    if (leads) leads.textContent = data.counts.ready ? data.counts.ready.toLocaleString() : "";
+  } catch (error) { /* badge is decoration only */ }
 }
 
 (function restoreCollapsedState() {

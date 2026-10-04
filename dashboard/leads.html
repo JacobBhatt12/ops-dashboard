@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en" class="motion">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>TheraWeb — Lead Finder</title>
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem("theraweb-theme");
+        if (stored === "light" || stored === "dark") document.documentElement.setAttribute("data-theme", stored);
+      } catch (error) { /* private mode etc. */ }
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="app-shell" data-page="leads">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="sidebar-overlay" id="sidebar-overlay" hidden></div>
+
+  <aside class="sidebar" id="sidebar">
+    <a class="sidebar-brand" href="/" aria-label="TheraWeb dashboard home">
+      <img src="/assets/tw-logo.png" alt="" width="32" height="32">
+      <span class="sidebar-brand-text"><strong>TheraWeb</strong><span>Dashboard</span></span>
+    </a>
+    <button class="sidebar-collapse" id="sidebar-collapse" type="button" aria-label="Collapse sidebar" aria-expanded="true">
+      <svg class="icon" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
+    </button>
+
+    <nav class="sidebar-nav" aria-label="Primary">
+      <div class="sidebar-section" data-section="workspace" data-open="true">
+        <button class="sidebar-section-label" type="button" aria-expanded="true"><span>Workspace</span><svg class="icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg></button>
+        <div class="sidebar-section-links">
+          <a class="sidebar-link" href="/">
+            <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg>
+            <span>Client reports</span><span class="sidebar-badge" data-badge="reports"></span>
+          </a>
+          <a class="sidebar-link" href="/outreach">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M22 2 11 13"></path><path d="m22 2-7 20-4-9-9-4Z"></path></svg>
+            <span>Cold outreach</span><span class="sidebar-badge" data-badge="outreach"></span>
+          </a>
+          <a class="sidebar-link" href="/leads" aria-current="page">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path><path d="M11 8v6M8 11h6"></path></svg>
+            <span>Lead Finder</span><span class="sidebar-badge" data-badge="leads"></span>
+          </a>
+          <a class="sidebar-link" href="/errors">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"></path><path d="M12 9v4M12 17h.01"></path></svg>
+            <span>Errors</span>
+          </a>
+        </div>
+      </div>
+      <div class="sidebar-section" data-section="business" data-open="true">
+        <button class="sidebar-section-label" type="button" aria-expanded="true"><span>Business</span><svg class="icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg></button>
+        <div class="sidebar-section-links">
+          <a class="sidebar-link" href="/customers">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span>Customers</span>
+          </a>
+          <a class="sidebar-link" href="/keys">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"></circle><path d="m21 2-9.6 9.6M15.5 7.5 19 11l3-3"></path></svg>
+            <span>Web3Forms keys</span>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span class="avatar" aria-hidden="true">JB</span>
+      <span class="sidebar-user"><strong>Your Name</strong><span>Owner · 127.0.0.1:8787</span></span>
+    </div>
+  </aside>
+
+  <div class="app-main">
+    <header class="topbar">
+      <button class="sidebar-menu-button" id="sidebar-menu-button" type="button" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      </button>
+      <label class="topbar-search">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+        <input type="search" id="page-search" placeholder="Search leads by name, email, city…" aria-label="Filter this page">
+        <kbd>⌘K</kbd>
+      </label>
+      <div class="topbar-actions">
+
+        <button class="btn icon-only ghost" type="button" data-theme-toggle aria-label="Toggle color theme">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path></svg>
+        </button>
+      </div>
+    </header>
+
+    <main id="main" class="app-content">
+      <div class="page-heading">
+        <h1>Lead Finder</h1>
+        <p>Small businesses from the free Overture Maps dataset. Each site gets checked for a published email and anything worth mentioning, then approved leads go out with the daily bot.</p>
+      </div>
+
+      <div id="leads-message" class="message" role="status" aria-live="polite" hidden></div>
+
+      <div class="kpi-grid">
+        <div class="card kpi c3" data-reveal>
+          <div class="kpi-body">
+            <div class="kpi-text">
+              <p class="kpi-label">Businesses on file</p>
+              <p class="kpi-value" id="stat-total">0</p>
+              <div class="kpi-delta" id="stat-total-note">Loading…</div>
+            </div>
+            <div class="kpi-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"></path></svg></div>
+          </div>
+          <div class="kpi-foot"><div class="progress-track"><div class="progress-fill" id="stat-checked-bar"></div></div><span class="kpi-delta" id="stat-checked-note"></span></div>
+        </div>
+        <div class="card kpi c2" data-reveal>
+          <div class="kpi-body">
+            <div class="kpi-text">
+              <p class="kpi-label">Waiting for review</p>
+              <p class="kpi-value" id="stat-ready">0</p>
+              <div class="kpi-delta" id="stat-ready-note">Emails found</div>
+            </div>
+            <div class="kpi-icon"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg></div>
+          </div>
+          <div class="kpi-foot"><div class="kpi-mini-bars" id="found-bars" aria-hidden="true"></div><span class="kpi-delta" id="found-note"></span></div>
+        </div>
+        <div class="card kpi c1" data-reveal>
+          <div class="kpi-body">
+            <div class="kpi-text">
+              <p class="kpi-label">Approved queue</p>
+              <p class="kpi-value" id="stat-approved">0</p>
+              <div class="kpi-delta" id="stat-approved-note">Loading…</div>
+            </div>
+            <div class="kpi-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"></path></svg></div>
+          </div>
+        </div>
+        <div class="card kpi c5" data-reveal>
+          <div class="kpi-body">
+            <div class="kpi-text">
+              <p class="kpi-label">Sent</p>
+              <p class="kpi-value" id="stat-sent">0</p>
+              <div class="kpi-delta" id="stat-sent-note">One email per business, never repeated</div>
+            </div>
+            <div class="kpi-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M22 2 11 13"></path><path d="m22 2-7 20-4-9-9-4Z"></path></svg></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-12">
+        <section class="card col-7" data-reveal aria-labelledby="find-heading">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title" id="find-heading">Find businesses</h2>
+              <p class="card-desc" id="find-desc">Pick states and business types, import them, then check their websites.</p>
+            </div>
+          </div>
+          <div class="card-body lf-stack">
+            <div class="field">
+              <span>States <small class="muted" id="states-count"></small></span>
+              <div class="lf-chips lf-states" id="states-box"></div>
+            </div>
+            <div class="field">
+              <span>Business types</span>
+              <div class="lf-chips" id="categories-box"></div>
+            </div>
+            <div class="lf-actions">
+              <button class="btn primary lg" id="import-btn" type="button">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"></path></svg>
+                Import businesses
+              </button>
+              <span class="lf-divider" aria-hidden="true"></span>
+              <label class="field lf-inline"><span>Sites to check</span><input id="crawl-limit" type="number" min="1" max="10000" step="50" value="500"></label>
+              <button class="btn lg" id="crawl-btn" type="button">
+                <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+                Check sites now
+              </button>
+            </div>
+            <div class="lf-job" id="job-box" hidden>
+              <div class="lf-job-line"><span class="spinner" id="job-spinner" aria-hidden="true"></span><span id="job-text"></span></div>
+              <div class="progress-track"><div class="progress-fill" id="job-bar" style="--kpi-color: var(--chart-2)"></div></div>
+            </div>
+            <p class="schedule-copy" id="import-meta"></p>
+          </div>
+        </section>
+
+        <section class="card col-5" data-reveal aria-labelledby="send-heading">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title" id="send-heading">Sending &amp; schedule</h2>
+              <p class="card-desc">Approved leads ride along with the weekday outreach bot.</p>
+            </div>
+          </div>
+          <div class="card-body lf-stack">
+            <label class="toggle">
+              <input type="checkbox" id="send-enabled">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              <span class="toggle-label">Send approved leads with the daily bot</span>
+            </label>
+            <div class="schedule-fields">
+              <label class="field"><span>Leads per day</span><input id="per-day" type="number" min="0" max="400" step="10"></label>
+              <div class="field"><span>Realtor list gets</span><input id="realtor-share" type="text" disabled></div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="nightly-enabled">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              <span class="toggle-label">Check new sites every night</span>
+            </label>
+            <div class="schedule-fields">
+              <label class="field"><span>Sites per night</span><input id="nightly-limit" type="number" min="50" max="10000" step="50"></label>
+              <label class="field"><span>Time</span><select id="nightly-hour"></select></label>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="skip-healthy">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              <span class="toggle-label">Skip businesses whose site already looks good</span>
+            </label>
+            <div class="schedule-next" id="send-summary"><span>Loading…</span></div>
+            <div><button class="btn primary lg" id="save-settings" type="button">Save settings</button></div>
+          </div>
+        </section>
+      </div>
+
+      <section class="card" data-reveal aria-labelledby="review-heading">
+        <div class="card-header lf-review-header">
+          <div>
+            <h2 class="card-title" id="review-heading">Review</h2>
+            <p class="card-desc" id="review-desc">Loading…</p>
+          </div>
+          <div class="segmented" role="tablist" aria-label="Lead status" id="status-tabs">
+            <button class="segmented-item is-active" type="button" role="tab" aria-selected="true" data-status="ready">Ready</button>
+            <button class="segmented-item" type="button" role="tab" aria-selected="false" data-status="approved">Approved</button>
+            <button class="segmented-item" type="button" role="tab" aria-selected="false" data-status="sent">Sent</button>
+            <button class="segmented-item" type="button" role="tab" aria-selected="false" data-status="no_email">No email</button>
+            <button class="segmented-item" type="button" role="tab" aria-selected="false" data-status="rejected">Rejected</button>
+          </div>
+        </div>
+        <div class="lf-bulk" id="bulk-bar">
+          <label class="lf-check-all"><input type="checkbox" id="check-all"> <span id="selected-count">0 selected</span></label>
+          <div class="card-actions">
+            <button class="btn" id="reject-btn" type="button" disabled>Reject</button>
+            <button class="btn" id="unapprove-btn" type="button" disabled hidden>Move back to review</button>
+            <button class="btn primary" id="approve-btn" type="button" disabled>Approve selected</button>
+            <button class="btn" id="approve-next-btn" type="button">Approve next 25</button>
+          </div>
+        </div>
+        <div class="card-body flush">
+          <div id="leads-table" class="table" aria-live="polite">
+            <div class="loading-state"><span class="spinner" aria-hidden="true"></span>Loading leads</div>
+          </div>
+        </div>
+        <div class="lf-more"><button class="btn ghost" id="more-btn" type="button" hidden>Load more</button></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog class="lf-dialog" id="preview-dialog" aria-labelledby="preview-title">
+    <div class="lf-dialog-head">
+      <div>
+        <h2 class="card-title" id="preview-title">Email preview</h2>
+        <p class="card-desc" id="preview-meta"></p>
+      </div>
+      <button class="btn icon-only ghost" type="button" id="preview-close" aria-label="Close preview">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+      </button>
+    </div>
+    <pre class="lf-preview" id="preview-body"></pre>
+  </dialog>
+
+  <script src="/vendor/gsap.min.js"></script>
+  <script src="/motion.js" defer></script>
+  <script src="/shell.js" defer></script>
+  <script src="/leads.js" defer></script>
+</body>
+</html>
