@@ -11,6 +11,7 @@ never raised.
 """
 from __future__ import annotations
 
+import os
 import urllib.request
 
 
@@ -19,7 +20,9 @@ def notify(cfg, client, text, log=None):
     if not ncfg.get("enabled"):
         return
 
-    topic = ncfg.get("ntfy_topic")
+    # The topic name is effectively a password (anyone who knows it can read
+    # and post), so it lives in .env, not in the committed config.yaml.
+    topic = os.environ.get("NTFY_TOPIC") or ncfg.get("ntfy_topic")
     if topic:
         try:
             req = urllib.request.Request(
@@ -37,7 +40,7 @@ def notify(cfg, client, text, log=None):
                 log(f"  ntfy push failed (non-fatal): {e}")
 
     # Fallback: carrier email-to-SMS gateway, if configured.
-    to = ncfg.get("to")
+    to = os.environ.get("NOTIFY_SMS_TO") or ncfg.get("to")
     if to:
         try:
             client.send(to, "", text, text)

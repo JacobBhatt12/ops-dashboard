@@ -76,12 +76,12 @@ safety:
 notify:
   # Push a one-line summary to your phone after every real run, via
   # ntfy.sh (free, no account - install the ntfy app and subscribe to
-  # this exact topic name). Carrier email-to-SMS (T-Mobile) silently
-  # dropped test messages, so that's kept only as a fallback below.
+  # the topic name set as NTFY_TOPIC in .env). Carrier email-to-SMS
+  # (T-Mobile) silently dropped test messages, so NOTIFY_SMS_TO in .env
+  # is kept only as a fallback. Both live in .env, not here, because
+  # this file is committed.
   # Set enabled: false to go back to silent / status.sh-only.
   enabled: true
-  ntfy_topic: "REMOVED"
-  to: "REMOVED"
 
 paths:
   contacts_xlsx: "data/Master List - All Contacts.xlsx"
