@@ -7,4 +7,4 @@ if [[ ! -t 1 ]]; then
 fi
 
 cd "$(dirname "$0")" || exit 1
-exec "./venv/bin/python3" "./management_app.py"
+exec "./venv/bin/python3" "./ops_dashboard.py"

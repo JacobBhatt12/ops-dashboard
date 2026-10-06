@@ -1,4 +1,4 @@
-# Agency Ops Dashboard
+# ops-dashboard
 
 A small web design agency's back office, running unattended on a tiny
 always-on Linux server. It sends every client a monthly site-health report
@@ -35,10 +35,12 @@ the inbox for opt-out replies and bounces and blocks those addresses for
 good. All sending pauses if the hard-bounce rate passes 3%. The bot
 refuses to send at all if the postal address isn't configured.
 
-**Dashboard.** A local web app (vanilla JS + GSAP, no build step) with
-pages for client reports, Lead Finder (counts, review queue, email
-previews, settings), client site errors (GitHub deploy status and a site
-issue checker), customers, and form keys.
+**Dashboard.** A web app (vanilla JS + GSAP, no build step) with pages
+for client reports, cold outreach (send stats and history), Lead Finder
+(counts, review queue, email previews, settings), client site errors
+(GitHub deploy status and a site issue checker), customers, and form keys.
+It opens in a native window (pywebview) or the browser, and can either run
+locally or attach to the copy already running on the server.
 
 ## How it runs
 
@@ -46,7 +48,7 @@ issue checker), customers, and form keys.
 1:07am daily     leadfinder.run nightly    import if the pool is low, crawl until 300 leads are queued
 10:00 weekdays   bot.run_daily             scan replies/bounces, send 200 between 10am and 10pm
 15th, 10:00      monthly_agent.py          client site-health reports
-always           management_app.py         dashboard on port 8787 (systemd service)
+always           ops_dashboard.py          dashboard on port 8787 (systemd service)
 ```
 
 Everything fits on a 1 GB e2-micro: DuckDB is capped at 300 MB and the
@@ -56,15 +58,16 @@ signs, and send times are spread across the day.
 ## Project layout
 
 ```
-management_app.py      Dashboard server and JSON API
-monthly_agent.py       Monthly client report: data collection, email, send
-send_log.py            Append-only log of client report sends
-bot/                   Outreach sender: Gmail API, schedule, opt-out/bounce scanner
-leadfinder/            Overture import, website crawler, lead store, email template
-dashboard/             Dashboard pages (HTML/CSS/JS)
-data/                  Client list, credentials, databases (gitignored)
-config.yaml            Bot volume, send window and safety limits
-.env.example           Every setting that holds credentials or personal details
+ops_dashboard.py             Dashboard server and JSON API
+Open Ops Dashboard.command   Mac launcher: opens the server's dashboard, or runs it locally
+monthly_agent.py             Monthly client report: data collection, email, send
+send_log.py                  Append-only log of client report sends
+bot/                         Outreach sender: Gmail API, schedule, opt-out/bounce scanner
+leadfinder/                  Overture import, website crawler, lead store, email template
+dashboard/                   Dashboard pages (HTML/CSS/JS)
+data/                        Client list, credentials, databases (gitignored)
+config.yaml                  Bot volume, send window and safety limits
+.env.example                 Every setting that holds credentials or personal details
 ```
 
 ## Setup
@@ -76,7 +79,7 @@ pip install -r requirements.txt
 cp .env.example .env                       # API keys, Gmail, sender identity
 cp clients.example.json data/clients.json  # your clients
 
-python3 management_app.py                  # dashboard at http://127.0.0.1:8787
+python3 ops_dashboard.py                   # dashboard at http://127.0.0.1:8787
 python3 -m leadfinder.run import --states FL
 python3 -m leadfinder.run crawl --limit 500
 python3 -m bot.run_daily --dry-run         # plan a send without sending
@@ -84,7 +87,11 @@ python3 -m bot.run_daily --dry-run         # plan a send without sending
 
 Then schedule `bot.run_daily` and `leadfinder.run nightly` with cron (the
 Lead Finder settings page can install the nightly job), and run
-`management_app.py` as a service.
+`ops_dashboard.py` as a service.
+
+On a Mac, double-click `Open Ops Dashboard.command`. If `DASHBOARD_REMOTE`
+in `.env` points at a reachable server (e.g. over Tailscale) it opens that
+dashboard with `--remote`; otherwise it starts one locally.
 
 ## Configuration and privacy
 

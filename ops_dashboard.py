@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Local management dashboard for selecting and sending client reports."""
+"""ops-dashboard: local dashboard for selecting and sending client reports."""
 
 import argparse
 import calendar
@@ -680,7 +680,7 @@ class ManagementHandler(BaseHTTPRequestHandler):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run the Thera management dashboard")
+    parser = argparse.ArgumentParser(description="Run the ops dashboard")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8787)
     parser.add_argument(
@@ -708,7 +708,7 @@ def main():
         dashboard_url = f"http://{args.host}:{args.port}"
         server_thread = threading.Thread(target=server.serve_forever, daemon=True)
         server_thread.start()
-    print(f"Thera management dashboard: {dashboard_url}")
+    print(f"Ops dashboard: {dashboard_url}")
 
     use_browser = args.browser or webview is None
     if use_browser:

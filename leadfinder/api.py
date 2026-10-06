@@ -1,4 +1,4 @@
-"""Dashboard-facing functions for the Lead Finder tab (used by management_app.py)."""
+"""Dashboard-facing functions for the Lead Finder tab (used by ops_dashboard.py)."""
 from __future__ import annotations
 
 import os

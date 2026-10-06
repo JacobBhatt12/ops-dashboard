@@ -1,4 +1,4 @@
-# Monthly client-report agent (monthly_agent.py, management_app.py)
+# Monthly client-report agent (monthly_agent.py, ops_dashboard.py)
 requests>=2.31.0
 twilio>=9.0.0
 matplotlib>=3.8.0
