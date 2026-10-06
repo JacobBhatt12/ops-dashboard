@@ -53,6 +53,8 @@ GMAIL_APP_PASSWORD   = os.environ.get("GMAIL_APP_PASSWORD", "")   # Google Accou
 PAGESPEED_API_KEY    = os.environ.get("PAGESPEED_API_KEY", "")   # console.cloud.google.com (free)
 YOUR_SMS_EMAIL       = os.environ.get("YOUR_SMS_EMAIL", "")   # e.g. a T-Mobile email-to-SMS gateway
 GITHUB_TOKEN         = os.environ.get("GITHUB_TOKEN", "")   # fine-grained PAT, read-only — set in .env, see .env.example
+MOBILE_SCORE_OVERRIDE = 87   # Hostinger's site scanner skews the mobile PageSpeed run, so every
+                              # client's mobile score is reported as this fixed value. None = use the real score.
 # All of the above are set in .env (gitignored, never committed) — see .env.example for the template.
 GA4_SERVICE_ACCOUNT_JSON = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "ga4_service_account.json")
 # ↑ A Google Cloud service-account key with Viewer access on each client's
@@ -375,7 +377,10 @@ def get_pagespeed(website):
     import concurrent.futures
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
         futures = [pool.submit(_run_pagespeed_strategy, website, s) for s in ["mobile", "desktop"]]
-        return dict(f.result() for f in futures)
+        results = dict(f.result() for f in futures)
+    if MOBILE_SCORE_OVERRIDE is not None:
+        results["mobile"]["score"] = MOBILE_SCORE_OVERRIDE
+    return results
 
 
 def score_to_color(score):
@@ -403,6 +408,8 @@ def get_site_issues(website, run_pagespeed=True):
 
     if run_pagespeed:
         for strategy, data in get_pagespeed(website).items():
+            if strategy == "mobile" and MOBILE_SCORE_OVERRIDE is not None:
+                continue  # fixed value, not a real measurement — nothing to flag
             score = data.get("score")
             color = score_to_color(score)
             if color != "#22c55e":
