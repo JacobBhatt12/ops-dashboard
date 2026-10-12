@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+from datetime import date
 from pathlib import Path
 
 import yaml
@@ -33,7 +34,22 @@ class Config:
     def load(cls, path: str | os.PathLike | None = None) -> "Config":
         p = Path(path) if path else ROOT / "config.yaml"
         with open(p, "r", encoding="utf-8") as fh:
-            return cls(yaml.safe_load(fh))
+            cfg = cls(yaml.safe_load(fh))
+        # volume.ramp steps daily_target up on set dates; resolve today's
+        # step here so every reader (bot, dashboard, status) sees one number.
+        step = cfg.ramp_target(date.today())
+        if step is not None:
+            cfg._d["volume"]["daily_target"] = step
+        return cfg
+
+    def ramp_target(self, day: date) -> int | None:
+        """daily_target from the latest volume.ramp step on or before `day`."""
+        best = None
+        for s in self._d.get("volume", {}).get("ramp") or []:
+            start = s["from"] if isinstance(s["from"], date) else date.fromisoformat(str(s["from"]))
+            if start <= day and (best is None or start >= best[0]):
+                best = (start, int(s["daily_target"]))
+        return best[1] if best else None
 
     def __getitem__(self, key):
         return self._d[key]

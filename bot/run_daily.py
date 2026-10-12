@@ -7,6 +7,7 @@ Daily entry point.
   python3 -m bot.run_daily                send for real
   python3 -m bot.run_daily --now          send immediately, ignore the window
   python3 -m bot.run_daily --limit 25     override today's volume
+  python3 -m bot.run_daily --hourly       cron, once an hour: send this hour's share
 
 Safe to interrupt. Every send is written to the database before the next one
 is attempted, so re-running the same day resumes rather than duplicating.
@@ -15,11 +16,12 @@ from __future__ import annotations
 
 import argparse
 import logging
+import math
 import os
 import random
 import sys
 import time
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from .config import Config, ROOT
@@ -90,6 +92,9 @@ def main(argv=None):
     ap.add_argument("--limit", type=int, help="override daily_target")
     ap.add_argument("--now", action="store_true",
                     help="ignore the schedule window; send back to back at the floor gap")
+    ap.add_argument("--hourly", action="store_true",
+                    help="send this hour's share of what's left of the day "
+                         "(run from cron once an hour inside the window)")
     ap.add_argument("--no-scan", action="store_true",
                     help="skip the bounce/opt-out scan (not recommended)")
     ap.add_argument("--config", default=None)
@@ -107,6 +112,16 @@ def main(argv=None):
     if cfg["schedule"].get("weekdays_only", True) and today.weekday() >= 5 \
             and not (args.dry_run or args.preview):
         log.info(f"{today} is a weekend and weekdays_only is set. Nothing to do.")
+        return 0
+
+    # Hourly mode: this run sends remaining / hours-left-in-window, spread
+    # over the next ~55 minutes. Only the window's last run texts a summary.
+    now = datetime.now()
+    end_h = int(cfg["schedule"]["end_hour"])
+    hours_left = end_h - now.hour
+    last_hour = hours_left <= 1
+    if args.hourly and not (int(cfg["schedule"]["start_hour"]) <= now.hour < end_h):
+        log.info(f"{now:%H:%M} is outside the send window. Nothing to do.")
         return 0
 
     store = Store(cfg.path("state_db"))
@@ -191,7 +206,16 @@ def main(argv=None):
 
     # 4. Select
     already = store.count_sent_on(today)
-    if already:
+    if args.hourly:
+        remaining = max(0, int(cfg["volume"]["daily_target"]) - already)
+        cfg["volume"]["daily_target"] = math.ceil(remaining / max(1, hours_left))
+        log.info(f"Hourly: {already} sent today, {remaining} left over {hours_left}h, "
+                 f"{cfg['volume']['daily_target']} this hour")
+        if not remaining:
+            log.info("Daily target already met. Done.")
+            store.close()
+            return 0
+    elif already:
         log.info(f"{already} already sent today; topping up to the daily target")
         cfg["volume"]["daily_target"] = max(
             0, int(cfg["volume"]["daily_target"]) - already)
@@ -225,9 +249,9 @@ def main(argv=None):
 
     if not sel.batch:
         log.info("Nothing eligible. Done.")
-        if not args.dry_run and not args.preview:
-            notify(cfg, client, "Nimble Email Sender: ran today, 0 sent "
-                   "(nothing eligible).", log=log.info)
+        if not args.dry_run and not args.preview and (not args.hourly or last_hour):
+            notify(cfg, client, f"Nimble Email Sender: {store.count_sent_on(today)} sent today, "
+                   "queue empty (nothing eligible).", log=log.info)
         store.close()
         return 0
 
@@ -252,7 +276,8 @@ def main(argv=None):
         times = None
         log.info(f"--now: sending back to back at the {floor}s floor gap")
     else:
-        times = plan_schedule(len(sel.batch), cfg, rng=rng)
+        until = datetime.now() + timedelta(minutes=55) if args.hourly else None
+        times = plan_schedule(len(sel.batch), cfg, rng=rng, until=until)
         span = (times[-1] - times[0]).total_seconds() / 3600
         log.info(f"Scheduled across {span:.1f}h: "
                  f"{times[0]:%H:%M} to {times[-1]:%H:%M}")
@@ -314,6 +339,12 @@ def main(argv=None):
                (f", {failed} failed" if failed else "") +
                (f", {sel.stats['shortfall']} short of target" if sel.stats.get("shortfall") else "") +
                ".")
+    if args.hourly:
+        if not (last_hour or failed):
+            store.close()
+            return 0
+        summary = (f"Nimble Email Sender: {store.count_sent_on(today)} sent today" +
+                   (f", {failed} failed this hour" if failed else "") + ".")
     notify(cfg, client, summary, log=log.info)
     store.close()
     return 0

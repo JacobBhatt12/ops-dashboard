@@ -11,6 +11,7 @@ First run opens a browser for consent; after that it is unattended.
 from __future__ import annotations
 
 import base64
+import os
 import time
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -64,7 +65,12 @@ class GmailClient:
                     str(self._client_secret), SCOPES)
                 creds = flow.run_local_server(port=0)
             self._token.parent.mkdir(parents=True, exist_ok=True)
-            self._token.write_text(creds.to_json(), encoding="utf-8")
+            # Write-then-rename: a full disk mid-write must not leave an
+            # empty token behind (that silently stopped sending on Oct 9).
+            tmp = self._token.with_suffix(".tmp")
+            tmp.write_text(creds.to_json(), encoding="utf-8")
+            os.chmod(tmp, 0o600)
+            tmp.replace(self._token)
         return creds
 
     # ---------- sending ----------

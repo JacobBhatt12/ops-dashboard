@@ -7,8 +7,15 @@ sender:
   display_name: ""
 
 volume:
-  # How many emails to send per run.
+  # How many emails to send per day. Used when no ramp step applies.
   daily_target: 200
+
+  # Step daily_target up gradually so the sending domain's reputation keeps
+  # pace with volume. The latest step whose date has arrived wins.
+  ramp:
+    - {from: 2026-10-12, daily_target: 200}
+    - {from: 2026-10-19, daily_target: 250}
+    - {from: 2026-10-26, daily_target: 300}
 
   # Minimum whole days between two sends to the SAME person.
   # 2 = "not the next day, but the day after the next is fine".
@@ -22,9 +29,13 @@ volume:
 
 schedule:
   # Local clock window the batch is spread across (24h, America/New_York).
-  # Starts at 10, not earlier — no reliable wifi at home before then.
-  start_hour: 10
-  end_hour: 22
+  # Runs on the server, so it doesn't depend on the Mac being on.
+  start_hour: 9
+  end_hour: 21
+
+  # Cron runs `bot.run_daily --hourly` once an hour inside this window. Each
+  # run scans replies/bounces, then sends its share of what's left of the
+  # day (remaining / hours left), spread across that hour.
 
   # Gap between sends is randomized. The bot computes the mean gap needed
   # to fit daily_target into the window, then jitters each gap by this
@@ -36,7 +47,7 @@ schedule:
   min_gap_seconds: 45
 
   # Skip weekends.
-  weekdays_only: true
+  weekdays_only: false
 
 selection:
   # Contacts are bucketed by how many times they've been touched, and the

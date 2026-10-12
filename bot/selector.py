@@ -137,9 +137,10 @@ def adjacency_report(batch) -> int:
                if batch[i].domain == batch[i - 1].domain)
 
 
-def plan_schedule(count, cfg, *, now=None, rng=None):
+def plan_schedule(count, cfg, *, now=None, rng=None, until=None):
     """
-    Randomized send times across the configured window.
+    Randomized send times across the configured window, or from now to
+    `until` (capped at end_hour) when given.
 
     Returns a list of datetimes. Gaps are jittered around the mean needed to
     fit `count` sends into the window, floored at min_gap_seconds.
@@ -155,6 +156,8 @@ def plan_schedule(count, cfg, *, now=None, rng=None):
 
     start = now.replace(hour=start_h, minute=0, second=0, microsecond=0)
     end = now.replace(hour=end_h, minute=0, second=0, microsecond=0)
+    if until is not None:
+        end = min(end, until)
     if now > start:
         start = now
     window = max(60.0, (end - start).total_seconds())
