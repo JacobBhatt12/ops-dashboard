@@ -93,8 +93,10 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
     log = _log()
     cfg = S.load()
-    # Keep one day of agency sends waiting on the server, then stop.
-    target = int(os.environ.get("AGENCY_QUEUE_TARGET") or cfg["per_day"] or 150)
+    # Keep today's sends plus a spare day waiting on the server, then stop.
+    # Leftovers stay queued, so a day the Mac is closed still sends its 150.
+    target = int(os.environ.get("AGENCY_QUEUE_TARGET")
+                 or (cfg["per_day"] or 150) * max(1, int(cfg.get("queue_days", 2))))
     S.write_status(sync_at=datetime.now().isoformat(timespec="seconds"))
     try:
         push(log)  # anything left over from last time

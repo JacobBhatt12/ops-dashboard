@@ -94,7 +94,8 @@ Docker image, and pitches them the Lead Finder.
 **Where it runs.** The server (1 GB) only sends. Searches run on the Mac:
 `launchd` job `com.theraweb.agencysync` runs `python3 -m agencyfinder.sync`
 every 10 minutes (and at login or wake). It asks the server how many agencies are
-queued, searches 8 at a time until 150 (`per_day`) are waiting, and pushes
+queued, searches 8 at a time until 300 are waiting (`per_day` x `queue_days`: today's
+150 plus 150 saved for tomorrow), and pushes
 each new ready agency to the server once over `gcloud compute ssh`
 (`AGENCY_SERVER_*` in `.env`). The server re-checks every row against its own
 send history and blocks on import. Docker Desktop must be running on the Mac.

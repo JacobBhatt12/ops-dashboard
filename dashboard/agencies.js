@@ -44,7 +44,9 @@
     $("ag-search-note").textContent = `${fmt(done)} of ${fmt(summary.searches_total)} searches done`;
 
     count($("ag-ready"), c.ready + c.approved);
-    $("ag-ready-note").textContent = `${fmt(c.ready)} ready · ${fmt(c.approved)} approved`;
+    const perDay = Math.max(1, summary.settings.per_day || 150);
+    const daysLeft = (c.ready + c.approved) / perDay;
+    $("ag-ready-note").textContent = `About ${daysLeft.toFixed(1)} days of sends (keeps ${summary.settings.queue_days || 2} days ready)`;
     const days = [...summary.daily].reverse();
     const max = Math.max(1, ...days.map((d) => d.found));
     $("ag-found-bars").innerHTML = days.map((d) => `<i style="height:${Math.max(3, (d.found / max) * 28)}px" title="${esc(d.day)}: ${d.found} found"></i>`).join("");

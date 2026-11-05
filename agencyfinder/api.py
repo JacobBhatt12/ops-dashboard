@@ -137,7 +137,8 @@ def update_settings(payload: dict) -> dict:
     for key, lo, hi, label in (("per_day", 0, 150, "Agencies per day"),
                                ("depth", 1, 20, "Scroll depth"),
                                ("concurrency", 1, 8, "Browsers"),
-                               ("searches_per_night", 1, 500, "Searches per night")):
+                               ("searches_per_night", 1, 500, "Searches per night"),
+                               ("queue_days", 1, 7, "Days of agencies to keep queued")):
         if key in payload:
             v = int(payload[key])
             if not lo <= v <= hi:

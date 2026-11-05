@@ -40,6 +40,9 @@ DEFAULTS = {
     "searches_per_night": 40,
     # The nightly run stops once this many agencies are queued to send.
     "nightly_target_ready": 300,
+    # The Mac keeps this many days of agency sends waiting on the server
+    # (per_day x queue_days). 2 = today's 150 plus 150 saved for tomorrow.
+    "queue_days": 2,
 }
 
 
