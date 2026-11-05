@@ -28,6 +28,7 @@ import bot.status_json as outreach_status_json
 from bot.config import Config as OutreachConfig
 from send_log import daily_counts as report_daily_counts, sends_on as report_sends_on
 import leadfinder.api as leads_api
+import agencyfinder.api as agencies_api
 
 
 PROJECT_DIR = Path(__file__).resolve().parent
@@ -473,6 +474,10 @@ class ManagementHandler(BaseHTTPRequestHandler):
             self._send_json({"customers": load_customers()})
             return
 
+        if path.startswith("/api/agencies/"):
+            self._handle_agencies(path)
+            return
+
         if path.startswith("/api/leads/"):
             self._handle_leads_get(path)
             return
@@ -497,6 +502,7 @@ class ManagementHandler(BaseHTTPRequestHandler):
             "/customers": "customers.html",
             "/keys": "keys.html",
             "/leads": "leads.html",
+            "/agencies": "agencies.html",
         }
         if path == "/assets/tw-logo.png":
             file_path = ASSETS_DIR / "tw-logo.png"
@@ -530,10 +536,48 @@ class ManagementHandler(BaseHTTPRequestHandler):
             self._handle_web3forms_unlock()
         elif path == "/api/site-issues/check":
             self._handle_site_issues_check()
+        elif path.startswith("/api/agencies/"):
+            self._handle_agencies(path, post=True)
         elif path.startswith("/api/leads/"):
             self._handle_leads_post(path)
         else:
             self.send_error(404)
+
+    def _handle_agencies(self, path, post=False):
+        query = parse_qs(urlparse(self.path).query)
+        def q(key, default=None):
+            return query.get(key, [default])[0]
+        try:
+            if post:
+                payload = self._read_json_body()
+                if not isinstance(payload, dict):
+                    raise ValueError("Expected a JSON object")
+                if path == "/api/agencies/settings":
+                    result = {"settings": agencies_api.update_settings(payload)}
+                elif path == "/api/agencies/review":
+                    result = agencies_api.review(payload)
+                elif path == "/api/agencies/job":
+                    result = agencies_api.start_job(payload)
+                else:
+                    self.send_error(404)
+                    return
+            elif path == "/api/agencies/summary":
+                result = agencies_api.summary()
+            elif path == "/api/agencies/list":
+                result = agencies_api.list_leads(q("status", "ready"), q("limit", "50"),
+                                                 q("offset", "0"), q("q"))
+            elif path == "/api/agencies/preview":
+                result = agencies_api.preview(q("id"))
+            else:
+                self.send_error(404)
+                return
+            self._send_json(result)
+        except (ValueError, TypeError) as error:
+            self._send_json({"error": str(error)}, status=400)
+        except RuntimeError as error:
+            self._send_json({"error": str(error)}, status=409)
+        except Exception as error:
+            self._send_json({"error": f"Agency Finder error: {error}"}, status=500)
 
     # ── Lead Finder ──────────────────────────────────────────────
     def _handle_leads_get(self, path):

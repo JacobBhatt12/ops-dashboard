@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import os
 import re
+import time
 import urllib.request
 from urllib.parse import urlparse
 
@@ -185,7 +186,16 @@ def _connect():
         return con  # local test file, no S3
     con.execute("INSTALL httpfs; LOAD httpfs;")
     con.execute("SET s3_region='us-west-2';")
+    # Defaults are a 30s timeout and 3 quick retries. Big Overture files on a
+    # slow link (TX, CA) blow past that, so wait longer and back off more.
+    con.execute(f"SET http_timeout={int(os.environ.get('LEADFINDER_HTTP_TIMEOUT', '180'))};")
+    con.execute("SET http_retries=8; SET http_retry_wait_ms=1000; SET http_retry_backoff=2;")
     return con
+
+
+def _is_network_error(e: Exception) -> bool:
+    s = str(e).lower()
+    return any(k in s for k in ("timeout", "timed out", "io error", "connection", "http get", "http head"))
 
 
 def fetch_state(state: str, groups: list[str], *, release: str, min_confidence=0.5,
@@ -208,11 +218,20 @@ def fetch_state(state: str, groups: list[str], *, release: str, min_confidence=0
         "lower(coalesce(taxonomy.primary, '') || ' ' || coalesce(basic_category, ''))",
         "lower(coalesce(categories.primary, ''))",
     ]
-    con = _connect()
-    try:
-        return _query(con, cat_exprs, path, x0, y0, x1, y1, state, min_confidence, kw, ex, release, log)
-    finally:
-        con.close()  # hand DuckDB's buffers back before the crawl starts
+    attempts = 3
+    for attempt in range(1, attempts + 1):
+        con = _connect()
+        try:
+            return _query(con, cat_exprs, path, x0, y0, x1, y1, state, min_confidence, kw, ex, release, log)
+        except Exception as e:
+            # A failed read leaves the connection unusable ("closed pending
+            # query result"), so start fresh on a new connection.
+            if attempt == attempts or not _is_network_error(e):
+                raise
+            log(f"  network error reading Overture for {state} (try {attempt}/{attempts}): {e}")
+            time.sleep(15 * attempt)
+        finally:
+            con.close()  # hand DuckDB's buffers back before the crawl starts
 
 
 def _query(con, cat_exprs, path, x0, y0, x1, y1, state, min_confidence, kw, ex, release, log):

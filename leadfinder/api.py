@@ -195,8 +195,7 @@ def _plist(hour: int) -> str:
 \t<array>
 \t\t<string>{sys.executable}</string>
 \t\t<string>-m</string>
-\t\t<string>leadfinder.run</string>
-\t\t<string>nightly</string>
+\t\t<string>bot.nightly</string>
 \t</array>
 \t<key>WorkingDirectory</key><string>{ROOT}</string>
 \t<key>StartCalendarInterval</key>
@@ -210,7 +209,7 @@ def _plist(hour: int) -> str:
 
 
 def _cron_line(hour: int) -> str:
-    return f"7 {hour} * * * cd '{ROOT}' && '{sys.executable}' -m leadfinder.run nightly >> '{S.LOG_DIR}/leadfinder-nightly.log' 2>&1 # theraweb-leadfinder"
+    return f"7 {hour} * * * cd '{ROOT}' && flock -n /tmp/thera-finder.lock '{sys.executable}' -m bot.nightly >> '{S.LOG_DIR}/leadfinder-nightly.log' 2>&1 # theraweb-leadfinder"
 
 
 def _cron_has_job() -> bool:
@@ -222,6 +221,9 @@ def _cron_has_job() -> bool:
 
 
 def apply_nightly(enabled: bool, hour: int) -> None:
+    # One schedule owns both finders, which run sequentially to release memory.
+    from agencyfinder.settings import load as agency_settings
+    enabled = enabled or agency_settings()["nightly_enabled"]
     if sys.platform == "darwin":
         uid = os.getuid()
         subprocess.run(["launchctl", "bootout", f"gui/{uid}/{LAUNCHD_LABEL}"], capture_output=True)

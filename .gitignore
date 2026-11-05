@@ -3,6 +3,7 @@ data/
 venv/
 __pycache__/
 logs/
+bin/
 *.log
 schedule_log.txt
 schedule_config.json

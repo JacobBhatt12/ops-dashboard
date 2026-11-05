@@ -3,8 +3,10 @@
 A small web design agency's back office, running unattended on a tiny
 always-on Linux server. It sends every client a monthly site-health report
 and keeps a steady pipeline of new business: each night it finds local
-businesses with a published email, and each weekday it emails 200 of them
-on a natural-looking schedule.
+businesses with a published email, and it emails up to 150 client prospects a day
+on a natural-looking schedule. Client outreach is capped at 150/day;
+agency outreach has a separate 150/day cap, alternating through the same
+Gmail sender when both queues have eligible recipients.
 
 ## What it does
 
@@ -25,7 +27,7 @@ Gmail.
    accepts mail, and notes anything worth mentioning (site down, no
    HTTPS, not mobile-friendly, old copyright year, site-builder site,
    slow). Stops once enough leads are queued for the next day.
-3. *Send (weekdays, 10am-10pm):* the outreach bot sends 200 emails through
+3. *Send (weekdays, 10am-10pm):* the outreach bot sends up to 150 client emails through
    the Gmail API at randomized intervals. Each email opens with one real
    observation about that business's site; the rest is a fixed template
    with a signature and a CAN-SPAM opt-out and postal address.
@@ -46,7 +48,7 @@ locally or attach to the copy already running on the server.
 
 ```
 1:07am daily     leadfinder.run nightly    import if the pool is low, crawl until 300 leads are queued
-10:00 weekdays   bot.run_daily             scan replies/bounces, send 200 between 10am and 10pm
+10:00 weekdays   bot.run_daily             scan replies/bounces, alternate up to 150 client + 150 agency emails
 15th, 10:00      monthly_agent.py          client site-health reports
 always           ops_dashboard.py          dashboard on port 8787 (systemd service)
 ```
@@ -69,6 +71,50 @@ data/                        Client list, credentials, databases (gitignored)
 config.yaml                  Bot volume, send window and safety limits
 .env.example                 Every setting that holds credentials or personal details
 ```
+
+## Agency outreach
+
+The **Agency Finder** tab (`/agencies`) finds web design and SEO agencies on
+Google Maps with the free [gosom/google-maps-scraper](https://github.com/gosom/google-maps-scraper)
+Docker image, and pitches them the Lead Finder.
+
+1. *Search:* each search is "<term> in <city>, <ST>" (terms like "web design
+   agency", "SEO company"; a few big cities per state, or the whole country).
+   Searches run 8 per container and are never repeated.
+2. *Qualify:* only agency-type Google categories; the email comes from the
+   profile, or failing that from the Lead Finder's site crawler. Published
+   emails only, own domain or a personal mailbox, MX checked, deduped against
+   every agency, Lead Finder business, past send and block.
+3. *Send:* `bot.run_daily` sends 150 client emails (Lead Finder + realtor list)
+   and 150 agency emails a day, alternating one and one. Over 9am-9pm that's
+   an email about every 2.4 minutes, each list about every 5. A shortfall in
+   one list never raises the other's cap. Both share the opt-out scan, bounce
+   pause, block list and send history.
+
+**Where it runs.** The server (1 GB) only sends. Searches run on the Mac:
+`launchd` job `com.theraweb.agencysync` runs `python3 -m agencyfinder.sync`
+every 10 minutes (and at login or wake). It asks the server how many agencies are
+queued, searches 8 at a time until 150 (`per_day`) are waiting, and pushes
+each new ready agency to the server once over `gcloud compute ssh`
+(`AGENCY_SERVER_*` in `.env`). The server re-checks every row against its own
+send history and blocks on import. Docker Desktop must be running on the Mac.
+
+Agency sending is off until you turn it on in the tab. Data lives in
+`data/agencies.db` and `data/agencyfinder.json`. The scraper needs Docker on
+the machine that runs it (`DOCKER_BIN` in `.env` if docker isn't on the PATH).
+
+```bash
+python3 -m agencyfinder.run scrape --searches 16   # run the next 16 searches
+python3 -m agencyfinder.run nightly                # refill if below the queue target
+python3 -m agencyfinder.run status
+python3 -m agencyfinder.run preview --limit 3
+python3 -m bot.nightly                             # both finders, one after the other
+python3 -m unittest discover -s tests -v
+```
+
+The nightly cron runs `python3 -m bot.nightly` (marker `theraweb-leadfinder`),
+which runs each enabled finder in its own process so DuckDB and Chromium
+never hold memory at the same time.
 
 ## Setup
 

@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en" class="motion">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>TheraWeb — Agency Finder</title>
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem("theraweb-theme");
+        if (stored === "light" || stored === "dark") document.documentElement.setAttribute("data-theme", stored);
+      } catch (error) { /* private mode etc. */ }
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="app-shell" data-page="agencies">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="sidebar-overlay" id="sidebar-overlay" hidden></div>
+
+  <aside class="sidebar" id="sidebar">
+    <a class="sidebar-brand" href="/" aria-label="TheraWeb dashboard home">
+      <img src="/assets/tw-logo.png" alt="" width="32" height="32">
+      <span class="sidebar-brand-text"><strong>TheraWeb</strong><span>Dashboard</span></span>
+    </a>
+    <button class="sidebar-collapse" id="sidebar-collapse" type="button" aria-label="Collapse sidebar" aria-expanded="true">
+      <svg class="icon" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
+    </button>
+
+    <nav class="sidebar-nav" aria-label="Primary">
+      <div class="sidebar-section" data-section="workspace" data-open="true">
+        <button class="sidebar-section-label" type="button" aria-expanded="true"><span>Workspace</span><svg class="icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg></button>
+        <div class="sidebar-section-links">
+          <a class="sidebar-link" href="/">
+            <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg>
+            <span>Client reports</span><span class="sidebar-badge" data-badge="reports"></span>
+          </a>
+          <a class="sidebar-link" href="/leads">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path><path d="M11 8v6M8 11h6"></path></svg>
+            <span>Lead Finder</span><span class="sidebar-badge" data-badge="leads"></span>
+          </a>
+          <a class="sidebar-link" href="/agencies" aria-current="page">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"></path></svg>
+            <span>Agency Finder</span>
+          </a>
+          <a class="sidebar-link" href="/errors">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"></path><path d="M12 9v4M12 17h.01"></path></svg>
+            <span>Errors</span>
+          </a>
+        </div>
+      </div>
+      <div class="sidebar-section" data-section="business" data-open="true">
+        <button class="sidebar-section-label" type="button" aria-expanded="true"><span>Business</span><svg class="icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg></button>
+        <div class="sidebar-section-links">
+          <a class="sidebar-link" href="/customers">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span>Customers</span>
+          </a>
+          <a class="sidebar-link" href="/keys">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"></circle><path d="m21 2-9.6 9.6M15.5 7.5 19 11l3-3"></path></svg>
+            <span>Web3Forms keys</span>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span class="avatar" aria-hidden="true">OW</span>
+      <span class="sidebar-user"><strong>Owner</strong><span>127.0.0.1:8787</span></span>
+    </div>
+  </aside>
+
+  <div class="app-main">
+    <header class="topbar">
+      <button class="sidebar-menu-button" id="sidebar-menu-button" type="button" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      </button>
+      <label class="topbar-search">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+        <input type="search" id="page-search" placeholder="Search agencies by name, email, city…" aria-label="Filter this page">
+        <kbd>⌘K</kbd>
+      </label>
+      <div class="topbar-actions">
+
+        <button class="btn icon-only ghost" type="button" data-theme-toggle aria-label="Toggle color theme">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path></svg>
+        </button>
+      </div>
+    </header>
+
+    <main id="main" class="app-content">
+      <div class="page-heading"><h1>Agency Finder</h1>
+        <p>Web design and SEO agencies from Google Maps, found free with the Docker Google Maps scraper. Each gets your lead finder pitch, alternating with client outreach.</p>
+      </div>
+      <div class="message" id="agency-message" role="status" aria-live="polite" hidden></div>
+      <div class="kpi-grid">
+        <div class="card kpi c3" data-reveal>
+          <div class="kpi-body">
+            <div class="kpi-text">
+              <p class="kpi-label">Agencies on file</p>
+              <p class="kpi-value" id="ag-total">0</p>
+              <div class="kpi-delta" id="ag-total-note">Loading…</div>
+            </div>
+            <div class="kpi-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"></path></svg></div>
+          </div>
+          <div class="kpi-foot"><div class="progress-track"><div class="progress-fill" id="ag-search-bar"></div></div><span class="kpi-delta" id="ag-search-note"></span></div>
+        </div>
+        <div class="card kpi c2" data-reveal>
+          <div class="kpi-body">
+            <div class="kpi-text">
+              <p class="kpi-label">Waiting to send</p>
+              <p class="kpi-value" id="ag-ready">0</p>
+              <div class="kpi-delta" id="ag-ready-note">Emails found</div>
+            </div>
+            <div class="kpi-icon"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg></div>
+          </div>
+          <div class="kpi-foot"><div class="kpi-mini-bars" id="ag-found-bars" aria-hidden="true"></div><span class="kpi-delta" id="ag-found-note"></span></div>
+        </div>
+        <div class="card kpi c1" data-reveal>
+          <div class="kpi-body">
+            <div class="kpi-text">
+              <p class="kpi-label">Sent today</p>
+              <p class="kpi-value" id="ag-today">0</p>
+              <div class="kpi-delta" id="ag-today-note">Loading…</div>
+            </div>
+            <div class="kpi-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 6v6l4 2"></path><circle cx="12" cy="12" r="9"></circle></svg></div>
+          </div>
+          <div class="kpi-foot"><div class="progress-track"><div class="progress-fill" id="ag-today-bar"></div></div><span class="kpi-delta" id="ag-today-split"></span></div>
+        </div>
+        <div class="card kpi c5" data-reveal>
+          <div class="kpi-body">
+            <div class="kpi-text">
+              <p class="kpi-label">Sent</p>
+              <p class="kpi-value" id="ag-sent">0</p>
+              <div class="kpi-delta">One email per agency, never repeated</div>
+            </div>
+            <div class="kpi-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M22 2 11 13"></path><path d="m22 2-7 20-4-9-9-4Z"></path></svg></div>
+          </div>
+        </div>
+      </div>
+
+      <section class="card" data-reveal aria-labelledby="ag-recent-heading">
+        <div class="card-header"><div><h2 class="card-title" id="ag-recent-heading">Latest sends today</h2>
+          <p class="card-desc">Client and agency emails, alternating. Newest first.</p></div></div>
+        <div class="card-body flush"><div class="table" id="ag-recent"><div class="empty-state">Nothing sent yet today.</div></div></div>
+      </section>
+      <div class="grid-12">
+        <section class="card col-7" aria-labelledby="agency-find-heading">
+          <div class="card-header"><div><h2 class="card-title" id="agency-find-heading">Find agencies</h2>
+            <p class="card-desc" id="agency-find-desc">Each search is "term in city, state". Leave every state unchecked to search the whole country.</p></div></div>
+          <form class="card-body lf-stack" id="agency-settings">
+            <div class="field"><span>States <small class="muted" id="agency-states-count"></small></span>
+              <div class="lf-chips lf-states" id="agency-states"></div>
+              <div class="lf-actions"><button class="btn ghost" type="button" id="agency-states-all">Whole country</button></div></div>
+            <label class="field"><span>Search terms, one per line</span><textarea id="agency-terms" rows="6" required></textarea></label>
+            <div class="schedule-fields">
+              <label class="field"><span>Searches to run now</span><input id="agency-query-count" type="number" min="1" max="500" value="16" required></label>
+              <label class="field"><span>Searches per night</span><input id="agency-per-night" type="number" min="1" max="500" required></label>
+            </div>
+            <div class="lf-actions"><button class="btn primary" type="submit" id="agency-save">Save settings</button>
+              <button class="btn" type="button" id="agency-find">Find agencies now</button></div>
+            <p class="schedule-copy" id="agency-docker"></p>
+            <p class="schedule-copy" id="agency-job" role="status" aria-live="polite">No search running.</p>
+          </form>
+        </section>
+        <section class="card col-5" aria-labelledby="agency-send-heading">
+          <div class="card-header"><div><h2 class="card-title" id="agency-send-heading">Agency outreach</h2>
+            <p class="card-desc">Alternates with client outreach: one client email, then one agency email.</p></div></div>
+          <div class="card-body lf-stack">
+            <label class="toggle"><input id="agency-enabled" type="checkbox">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span><span class="toggle-label">Send agency emails</span></label>
+            <label class="field"><span>Agency emails per day, up to 150</span><input id="agency-per-day" type="number" min="0" max="150" required></label>
+            <label class="toggle"><input id="agency-auto" type="checkbox">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span><span class="toggle-label">Send ready agencies without manual approval</span></label>
+            <label class="toggle"><input id="agency-nightly" type="checkbox">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span><span class="toggle-label">Refill the agency queue each night</span></label>
+            <div class="schedule-next" id="agency-sent"><span>Loading…</span></div>
+            <p class="schedule-copy">Both campaigns share the opt-out scan, bounce pause, block list and never-email-twice history.</p>
+          </div>
+        </section>
+      </div>
+      <section class="card" aria-labelledby="agency-review-heading">
+        <div class="card-header"><div><h2 class="card-title" id="agency-review-heading">Agency queue</h2>
+          <p class="card-desc" id="agency-list-note">Only published emails, on the agency's own domain or a personal mailbox.</p></div>
+          <label class="field"><span>Status</span><select id="agency-status">
+            <option value="ready">Ready</option><option value="approved">Approved</option>
+            <option value="sent">Sent</option><option value="no_email">No email</option>
+            <option value="rejected">Rejected</option><option value="blocked">Blocked</option>
+            <option value="duplicate">Duplicate</option><option value="bad_email">Invalid email domain</option>
+          </select></label>
+        </div>
+        <div class="lf-bulk"><label class="lf-check-all"><input type="checkbox" id="agency-select-all"> Select all on this page</label>
+          <div class="card-actions"><span class="muted" id="agency-selected">0 selected</span>
+            <button class="btn" id="agency-reject" type="button" disabled>Reject</button>
+            <button class="btn" id="agency-unapprove" type="button" disabled>Move back to review</button>
+            <button class="btn primary" id="agency-approve" type="button" disabled>Approve selected</button>
+            <button class="btn" id="agency-approve-next" type="button">Approve next 150</button></div></div>
+        <div class="card-body flush"><div class="table" id="agency-table" aria-live="polite"><div class="loading-state">Loading agencies…</div></div></div>
+        <div class="lf-more"><button class="btn ghost" type="button" id="agency-previous" disabled>Previous</button>
+          <span class="muted" id="agency-page"></span><button class="btn ghost" type="button" id="agency-next" disabled>Next</button></div>
+      </section>
+      <section class="card" aria-labelledby="agency-preview-heading">
+        <div class="card-header"><div><h2 class="card-title" id="agency-preview-heading">Email preview</h2>
+          <p class="card-desc" id="agency-preview-meta">Click Preview on any agency to see its exact email.</p></div></div>
+        <div class="card-body"><pre class="lf-preview" id="agency-preview">No agency selected.</pre></div>
+      </section>
+    </main>
+  </div>
+  <script src="/vendor/gsap.min.js"></script>
+  <script src="/motion.js" defer></script>
+  <script src="/shell.js" defer></script>
+  <script src="/agencies.js" defer></script>
+</body>
+</html>

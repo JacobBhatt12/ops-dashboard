@@ -7,12 +7,25 @@ exact same safety rails as the realtor list.
 """
 from __future__ import annotations
 
+import re
 from datetime import date, timedelta
+from urllib.parse import unquote
 
 from . import settings as S
 from .store import LeadStore
 from .template import clean_business_name, render_lead
 from .template import self_check as template_self_check
+
+
+_VALID = re.compile(r"^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,24}$")
+
+
+def clean_email(raw: str) -> str:
+    """Strip junk sites wrap around addresses ("email:%20x@y.com", "http://x@y.com").
+    Returns "" when what's left still isn't a plain address."""
+    e = unquote(raw or "").strip().lower()
+    e = re.sub(r"^(e-?mail|mailto|https?)\s*:\s*(//)?", "", e).strip(" /")
+    return e if _VALID.match(e) else ""
 
 
 class LeadContact:
@@ -21,7 +34,8 @@ class LeadContact:
     def __init__(self, row):
         self.lead = dict(row)
         self.lead_id = row["id"]
-        self.email = row["email"].strip().lower()
+        # Some sites publish "mailto:email:%20name@x.com"; keep only the address.
+        self.email = clean_email(row["email"])
         self.person_key = self.email          # one business, one touch
         self.first_raw = None
         self.last = None
@@ -77,7 +91,10 @@ def take_leads(store, n: int, include_ready: bool = False) -> tuple[list[LeadCon
     rows = ls.approved_batch(n + 50, blocked, include_ready)
     out = []
     for r in rows:
-        if r["email"] in sent_before:
+        if not clean_email(r["email"]):
+            ls.conn.execute("UPDATE leads SET status='bad_email', status_detail='not a valid address' WHERE id=?", (r["id"],))
+            continue
+        if r["email"] in sent_before or clean_email(r["email"]) in sent_before:
             ls.conn.execute("UPDATE leads SET status='duplicate', status_detail='already emailed' WHERE id=?", (r["id"],))
             continue
         out.append(LeadContact(r))

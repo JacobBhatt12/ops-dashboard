@@ -23,6 +23,13 @@ def build_status() -> dict:
     ).fetchone()
     sent_today = today_row["n"] if today_row else 0
     daily_target = cfg["volume"]["daily_target"]
+    from agencyfinder.settings import load as agency_settings
+    agency = agency_settings()
+    client_target = max(0, min(150, int(daily_target)))
+    agency_target = max(0, min(150, int(agency["per_day"]))) if agency["send_enabled"] else 0
+    agency_sent = db.execute("SELECT COUNT(*) FROM sends WHERE sent_on=? AND template='agency'",
+                             (today,)).fetchone()[0]
+    daily_target = client_target + agency_target
 
     bounce_counts = {
         r["d"]: r["n"]
@@ -61,6 +68,7 @@ def build_status() -> dict:
     lifetime_people = db.execute(
         "SELECT COUNT(DISTINCT person_key) FROM sends"
     ).fetchone()[0]
+    db.close()
 
     return {
         "config": {
@@ -77,6 +85,10 @@ def build_status() -> dict:
             "remaining": max(daily_target - sent_today, 0),
         },
         "run_days": run_days,
+        "campaigns": {
+            "client": {"target": client_target, "sent": sent_today - agency_sent},
+            "agency": {"target": agency_target, "sent": agency_sent},
+        },
         "blocks_by_source": blocks_by_source,
         "recent_blocks": recent_blocks,
         "blocks": all_blocks,

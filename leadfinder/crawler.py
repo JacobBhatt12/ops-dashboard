@@ -154,6 +154,7 @@ def extract_emails(page_html: str) -> list[tuple[str, str]]:
     for e, how in found:
         e = e.strip().strip(".,;:").lower()
         e = re.sub(r"^(%20|u003e|>)+", "", e)
+        e = re.sub(r"^(e-?mail|mailto)\s*:\s*(%20)*", "", e)
         if e in seen or not _plausible(e):
             continue
         seen.add(e)

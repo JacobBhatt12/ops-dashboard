@@ -8,7 +8,7 @@ sender:
 
 volume:
   # How many emails to send per day. Used when no ramp step applies.
-  daily_target: 200
+  daily_target: 150
 
   # Step daily_target up gradually so the sending domain's reputation keeps
   # pace with volume. The latest step whose date has arrived wins.
@@ -16,6 +16,9 @@ volume:
     - {from: 2026-10-12, daily_target: 200}
     - {from: 2026-10-19, daily_target: 250}
     - {from: 2026-10-26, daily_target: 300}
+    # Client stream cut to 150/day; the web designer / SEO agency stream
+    # takes the other 150 (300 total, alternating).
+    - {from: 2026-11-05, daily_target: 150}
 
   # Minimum whole days between two sends to the SAME person.
   # 2 = "not the next day, but the day after the next is fine".

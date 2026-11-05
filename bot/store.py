@@ -134,11 +134,17 @@ class Store:
             "SELECT * FROM sends WHERE sent_on = ? ORDER BY sent_at", (day.isoformat(),)
         ))
 
-    def count_sent_on(self, day: date) -> int:
-        r = self.conn.execute(
-            "SELECT COUNT(*) AS n FROM sends WHERE sent_on = ?", (day.isoformat(),)
-        ).fetchone()
-        return r["n"]
+    def count_sent_on(self, day: date, template: str | None = None,
+                      exclude_template: str | None = None) -> int:
+        """Sends on `day`; optionally only one template, or all but one."""
+        q, args = "SELECT COUNT(*) AS n FROM sends WHERE sent_on = ?", [day.isoformat()]
+        if template:
+            q += " AND template = ?"
+            args.append(template)
+        if exclude_template:
+            q += " AND template <> ?"
+            args.append(exclude_template)
+        return self.conn.execute(q, args).fetchone()["n"]
 
     # ---------- blocks ----------
 
