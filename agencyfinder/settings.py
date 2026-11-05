@@ -21,7 +21,7 @@ DEFAULT_TERMS = [
 ]
 
 DEFAULTS = {
-    # Off until Jake previews the email and turns it on.
+    # Off until the email is previewed and sending is turned on.
     "send_enabled": False,
     # Agency emails per day. Sent alternating with the client stream.
     "per_day": 150,

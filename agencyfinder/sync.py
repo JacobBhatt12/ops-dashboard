@@ -11,7 +11,7 @@ over `gcloud compute ssh`. The server re-checks every row against its own
 send history and block list on import.
 
 Server details live in .env (gitignored):
-  AGENCY_SERVER_GCLOUD   e.g. "thera-server --project my-proj --zone us-east1-b"
+  AGENCY_SERVER_GCLOUD   e.g. "my-server --project my-project --zone us-central1-a"
   AGENCY_SERVER_USER     the Linux user that owns the app (default: your ssh user)
   AGENCY_SERVER_DIR      app folder on the server, relative to that user's home
 """

@@ -3,9 +3,9 @@
 Lifecycle of an agency:
 
   ready      has a usable email whose domain accepts mail; waiting for review
-  approved   Jake approved it; the daily bot will send to it
+  approved   approved in the dashboard; the daily bot will send to it
   sent       the bot emailed it (one touch only, never repeated)
-  rejected   Jake rejected it
+  rejected   rejected in the dashboard
   no_email   no usable email on Google or on their site
   bad_email  the email's domain can't receive mail
   duplicate  same email or website as an agency (or lead) we already have

@@ -1,12 +1,12 @@
 """The email sent to web design and SEO agencies.
 
-The pitch: stop paying for ads and lead apps; Jake built a system that finds
+The pitch: stop paying for ads and lead apps; we built a system that finds
 200+ qualified local leads a day, in their state or nationwide.
 
 What changes per agency: the name, their city and state, and whether they're
 called web designers or SEO/marketing agencies (from their Google category).
 
-Writing rules (Jake's): short, sounds like a person, no em dashes.
+Writing rules: short, sounds like a person, no em dashes.
 """
 from __future__ import annotations
 

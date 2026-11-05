@@ -190,15 +190,15 @@ class CampaignTests(unittest.TestCase):
         self.assertIn("&lt;Dana &amp; Co&gt;", html)
 
     def test_scraper_rows_are_filtered_and_cleaned(self):
-        row = {"title": "Smartly Done Websites", "category": "Website designer",
+        row = {"title": "Example Web Studio", "category": "Website designer",
                "categories": ["Website designer", "Marketing agency"],
                "complete_address": {"city": "Tampa", "state": "Florida", "country": "US"}}
         self.assertTrue(is_agency(row))
         self.assertEqual(state_code(row), "FL")
         self.assertFalse(is_agency({"category": "Pizza restaurant", "categories": []}))
         self.assertEqual(state_code({"address": "1 Main St, Austin, TX 78701"}), "TX")
-        self.assertEqual(clean_site("https://www.smartlydone.com/tampa?utm_source=google"),
-                         ("https://www.smartlydone.com/", "smartlydone.com"))
+        self.assertEqual(clean_site("https://www.examplewebstudio.com/tampa?utm_source=google"),
+                         ("https://www.examplewebstudio.com/", "examplewebstudio.com"))
         self.assertEqual(clean_site("https://www.google.com/maps/x"), (None, None))
 
     def test_budgets_and_unequal_queue_alternation(self):
