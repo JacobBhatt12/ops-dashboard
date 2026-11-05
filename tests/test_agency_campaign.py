@@ -176,18 +176,23 @@ class CampaignTests(unittest.TestCase):
         for name in ("Grove Brands LLC", "", "<Dana & Co>"):
             row = {"name": name, "category": "SEO agency", "city": "Austin", "state": "TX"}
             subject, text, html = render_agency(row)
-            self.assertIn("hundreds of dollars a month on ads", text)
-            self.assertIn("thousands a year", text)
-            self.assertIn("I was a student", text)
+            self.assertIn("spending on ads and lead apps", text)
+            self.assertIn("adds up to thousands a year", text)
+            self.assertIn("full-time student", text)
             self.assertIn(AGENCY_MARK, text)
-            self.assertIn("anywhere in Texas or across the whole country", text)
+            self.assertIn("It works for Austin, anywhere in Texas, or anywhere in the country.", text)
+            self.assertIn("all the way down in Florida", text)
             self.assertIn("SEO and marketing agencies in Austin", text)
-            self.assertEqual(subject, "finding new clients in Austin")
+            self.assertEqual(subject, "Finding clients without paying for ads")
             self.assertEqual(text.count(SIGNATURE_TEXT), 1)
             self.assertEqual(html.count(SIGNATURE_HTML), 1)
             self.assertIn("unsubscribe", text)
             self.assertNotIn("\u2014", text)
         self.assertIn("&lt;Dana &amp; Co&gt;", html)
+        _, fl, _ = render_agency({"name": "Bay Web Co", "category": "Website designer",
+                                  "city": "Tampa", "state": "FL"})
+        self.assertNotIn("down in Florida", fl)
+        self.assertIn("I’m not reaching out to compete with you.", fl)
 
     def test_scraper_rows_are_filtered_and_cleaned(self):
         row = {"title": "Example Web Studio", "category": "Website designer",
@@ -222,7 +227,7 @@ class CampaignTests(unittest.TestCase):
             self.assertEqual(cfg["states"], ["FL"])
 
 
-AGENCY_MARK = "200+ qualified"
+AGENCY_MARK = "200+ local businesses"
 
 
 if __name__ == "__main__":
